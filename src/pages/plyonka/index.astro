@@ -23,7 +23,8 @@ const lab = shots.map((s) => ({
   alt: s.alt,
   caption: s.caption,
   kind: s.kind,
-  when: s.date ?? String(s.year),
+  when: s.date ?? (s.approx ? `около ${s.year}` : String(s.year)),
+  approx: s.approx,
   frame: s.frame,
   age: roll[s.frame - 1].age,
   credit: s.credit,
@@ -49,10 +50,16 @@ const lab = shots.map((s) => ({
 
     <Note>
       <p>
-        Проявлено {exposed} кадров из 36. Свободных фотографий Талькова почти нет: большая
-        часть снимков принадлежит ТАСС, РИА Новости, фотографам и семье. Поэтому на плёнке
-        пока единственный снимок под свободной лицензией, остальное — обложки пластинок,
-        постеры и места. Обложки и постеры принадлежат издателям и киностудиям.
+        Проявлено {exposed} кадров из 36. Большинство снимков — из семейного архива Тальковых:
+        их опубликовали мать и брат в книге «Я воскресну и спою…» и сайты памяти Игоря Талькова.
+        Под свободной лицензией только снимок Льва Медведева. У каждого снимка на обороте указан
+        источник. Если год помечен «около», снимок датирован по возрасту и обстановке и может
+        ошибаться на год-два.
+      </p>
+      <p>
+        Права на снимки принадлежат семье и фотографам. Если вы правообладатель и против
+        публикации, <a href="https://github.com/ReGo2552/kartotekaTalkov/issues">напишите</a> —
+        снимок уберём.
       </p>
     </Note>
 
@@ -79,7 +86,10 @@ const lab = shots.map((s) => ({
               {f.period && <p class="log__period">Период: <a href={f.period.href}>{f.period.title}</a></p>}
               <ul class="log__events">
                 {f.shots.map((s) => (
-                  <li><span class="log__code">Ф</span><a href={s.full} data-shot={s.index}>{s.caption}</a></li>
+                  <li>
+                    <span class="log__code">Ф</span><a href={s.full} data-shot={s.index}>{s.caption}</a>
+                    {s.approx && <span class="log__note">год ориентировочный</span>}
+                  </li>
                 ))}
                 {f.events.map((e) => (
                   <li>
@@ -112,6 +122,7 @@ const lab = shots.map((s) => ({
             <p class="back__stamp">Картотека Талькова · {pages.roll.code}</p>
             <p class="back__frame" data-lab-frame></p>
             <p class="back__caption" data-lab-caption></p>
+            <p class="back__credit" data-lab-approx></p>
             <p class="back__credit" data-lab-credit></p>
             <p class="back__card" data-lab-card></p>
             <p class="back__card" data-lab-log></p>
@@ -478,6 +489,7 @@ const lab = shots.map((s) => ({
     url?: string;
     card?: { code: string; title: string; href: string };
     log?: string;
+    approx: boolean;
   }
 
   const slides: Slide[] = JSON.parse(document.getElementById('lab-data')?.textContent ?? '[]');
@@ -525,6 +537,7 @@ const lab = shots.map((s) => ({
     $('back').dataset.n = String(s.frame);
     $('frame').textContent = `Кадр ${s.frame} · ${s.when} · ${s.age}`;
     $('caption').textContent = `${s.kind[0].toUpperCase()}${s.kind.slice(1)}. ${s.caption}`;
+    $('approx').textContent = s.approx ? 'Год ориентировочный: может ошибаться на год-два.' : '';
     $('credit').replaceChildren('Источник: ', link(s.credit, s.url));
     $('card').replaceChildren(...(s.card ? ['Карточка: ', link(`${s.card.code} «${s.card.title}»`, s.card.href)] : []));
     $('log').replaceChildren(...(s.log ? [link(`Журнал плёнки: ${s.log.slice('#god-'.length)} год →`, s.log)] : []));
