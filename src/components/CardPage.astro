@@ -1,0 +1,177 @@
+---
+import Base from '../layouts/Base.astro';
+import IndexCard from './IndexCard.astro';
+
+/**
+ * Страница одной карточки: путь, карточка с полями, текст из слота,
+ * ссылки «См. также» и источники. Служебные блоки не попадают в поиск.
+ */
+interface Props {
+  title: string;
+  description: string;
+  code: string;
+  drawer: string;
+  /** Ссылка на ящик в «хлебных крошках». */
+  crumb?: { href: string; label: string };
+  fields?: { label: string; value?: string }[];
+  see?: { code: string; title: string; href: string }[];
+  sources?: { title: string; url?: string }[];
+}
+
+const { title, description, code, drawer, crumb, fields = [], see = [], sources = [] } = Astro.props;
+const filled = fields.filter((f) => f.value);
+---
+
+<Base title={title} description={description}>
+  <div class="wrap page">
+    <nav class="crumbs" aria-label="Путь">
+      <a href="/">Картотека</a>
+      {crumb && <> / <a href={crumb.href}>{crumb.label}</a></>}
+    </nav>
+
+    <IndexCard code={code} drawer={drawer} title={title}>
+      <Fragment slot="tags"><slot name="tags" /></Fragment>
+
+      {filled.length > 0 && (
+        <dl class="fields">
+          {filled.map((f) => (
+            <div>
+              <dt>{f.label}<span class="visually-hidden">: </span></dt>
+              <dd>{f.value}<span class="visually-hidden">. </span></dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      <slot />
+
+      {see.length > 0 && (
+        <section class="block" aria-labelledby="see-h" data-pagefind-ignore>
+          <h2 id="see-h" class="block__h">См. также</h2>
+          <ul class="refs">
+            {see.map((r) => (
+              <li><a href={r.href}><span class="refs__code">{r.code}</span>{r.title}</a></li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {sources.length > 0 && (
+        <section class="block" aria-labelledby="src-h" data-pagefind-ignore>
+          <h2 id="src-h" class="block__h">Источники</h2>
+          <ol class="sources">
+            {sources.map((s) => (
+              <li>{s.url ? <a href={s.url} target="_blank" rel="noopener">{s.title}</a> : s.title}</li>
+            ))}
+          </ol>
+        </section>
+      )}
+    </IndexCard>
+  </div>
+</Base>
+
+<style>
+  .page {
+    max-width: 960px;
+    padding-top: 32px;
+  }
+
+  .crumbs {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .crumbs a {
+    text-decoration: none;
+  }
+
+  .crumbs a:hover {
+    color: var(--text);
+  }
+
+  .fields {
+    margin: 0 0 32px;
+  }
+
+  .fields div {
+    display: grid;
+    grid-template-columns: 11rem 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .fields div:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .fields dt {
+    color: var(--muted);
+    font-size: 0.85rem;
+    padding-top: 2px;
+  }
+
+  .fields dd {
+    margin: 0;
+  }
+
+  .refs,
+  .sources {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .refs a {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .refs a:hover {
+    color: var(--red);
+  }
+
+  .refs__code {
+    width: 4.5rem;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    color: var(--red);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sources {
+    counter-reset: src;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+
+  .sources li {
+    counter-increment: src;
+    position: relative;
+    padding: 3px 0 3px 2rem;
+  }
+
+  .sources li::before {
+    content: counter(src) '.';
+    position: absolute;
+    left: 0;
+  }
+
+  .sources a {
+    color: var(--text-soft);
+    word-break: break-word;
+  }
+
+  @media (max-width: 560px) {
+    .fields div {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>

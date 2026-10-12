@@ -1,0 +1,218 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Поиск" description="Поиск по картотеке Игоря Талькова: песни, альбомы, люди, биография.">
+  <div class="wrap search">
+    <header class="head">
+      <p class="eyebrow">Картотека</p>
+      <h1>Поиск</h1>
+    </header>
+
+    <form class="field" role="search" data-search-form>
+      <label class="visually-hidden" for="q">Что найти</label>
+      <input id="q" name="q" type="search" placeholder="Песня, альбом, человек, год…" autocomplete="off" />
+    </form>
+
+    <p class="status" data-status aria-live="polite"></p>
+    <ol class="results" data-results></ol>
+  </div>
+</Base>
+
+<script>
+  type Sub = { title: string; url: string; excerpt: string };
+  type Result = { url: string; excerpt: string; meta: { title?: string; code?: string }; sub_results?: Sub[] };
+  type Pagefind = {
+    debouncedSearch: (q: string) => Promise<{ results: { data: () => Promise<Result> }[] } | null>;
+  };
+
+  const input = document.querySelector<HTMLInputElement>('#q')!;
+  const form = document.querySelector<HTMLFormElement>('[data-search-form]')!;
+  const status = document.querySelector<HTMLElement>('[data-status]')!;
+  const list = document.querySelector<HTMLOListElement>('[data-results]')!;
+
+  let pagefind: Pagefind | null = null;
+
+  // Индекс собирает Pagefind при сборке сайта, поэтому в режиме разработки его нет.
+  async function load(): Promise<Pagefind | null> {
+    if (pagefind) return pagefind;
+    try {
+      const url = '/pagefind/pagefind.js';
+      pagefind = await import(/* @vite-ignore */ url);
+    } catch {
+      status.textContent = 'Поиск работает в собранной версии сайта (npm run build, затем npm run preview).';
+    }
+    return pagefind;
+  }
+
+  function cardsWord(n: number) {
+    const m10 = n % 10;
+    const m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return 'карточка';
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'карточки';
+    return 'карточек';
+  }
+
+  function render(results: Result[], query: string) {
+    list.replaceChildren(
+      ...results.map((r) => {
+        const li = document.createElement('li');
+        // Совпадение внутри раздела (период биографии, глава карточки) ведёт прямо к нему.
+        const part = r.sub_results?.find((s) => s.url.includes('#'));
+        const a = document.createElement('a');
+        a.href = part?.url ?? r.url;
+        a.className = 'hit';
+
+        const code = document.createElement('span');
+        code.className = 'hit__code';
+        code.textContent = r.meta.code ?? '';
+
+        const title = document.createElement('span');
+        title.className = 'hit__title';
+        title.textContent = [r.meta.title ?? r.url, part?.title].filter(Boolean).join(' — ');
+
+        // Отрывок приходит от Pagefind уже экранированным, с <mark> вокруг совпадений.
+        const excerpt = document.createElement('span');
+        excerpt.className = 'hit__excerpt';
+        excerpt.innerHTML = part?.excerpt ?? r.excerpt;
+
+        a.append(code, title, excerpt);
+        li.append(a);
+        return li;
+      }),
+    );
+    status.textContent = results.length
+      ? `${results.length} ${cardsWord(results.length)}`
+      : `По запросу «${query}» ничего не нашлось.`;
+  }
+
+  async function run() {
+    const query = input.value.trim();
+    const params = new URLSearchParams(location.search);
+    if (query) params.set('q', query);
+    else params.delete('q');
+    history.replaceState(null, '', `${location.pathname}${params.size ? `?${params}` : ''}`);
+
+    if (!query) {
+      list.replaceChildren();
+      status.textContent = '';
+      return;
+    }
+    const pf = await load();
+    if (!pf) return;
+    const search = await pf.debouncedSearch(query);
+    if (!search) return; // запрос перебит следующим
+    const results = await Promise.all(search.results.slice(0, 20).map((r) => r.data()));
+    render(results, query);
+  }
+
+  input.addEventListener('input', run);
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    run();
+  });
+
+  const initial = new URLSearchParams(location.search).get('q');
+  if (initial) {
+    input.value = initial;
+    run();
+  }
+  input.focus();
+</script>
+
+<style>
+  .search {
+    max-width: 880px;
+  }
+
+  .head {
+    padding-top: 56px;
+    margin-bottom: 28px;
+  }
+
+  .head h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(3.6rem, 10vw, 6.5rem);
+    line-height: 0.85;
+    margin-top: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    font: inherit;
+    font-size: 1.3rem;
+    color: var(--text);
+    background: var(--panel);
+    border: 0;
+    border-bottom: 3px solid var(--red);
+    padding: 16px 18px;
+    border-radius: 0;
+  }
+
+  .field input::placeholder {
+    color: #666;
+  }
+
+  .field input:focus {
+    outline: none;
+    background: var(--panel-hover);
+  }
+
+  .status {
+    color: var(--muted);
+    font-size: 0.9rem;
+    min-height: 1.5em;
+    margin: 16px 0;
+  }
+
+  .results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .results :global(.hit) {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr;
+    gap: 2px 12px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+    text-decoration: none;
+  }
+
+  .results :global(.hit:hover .hit__title) {
+    color: var(--red);
+  }
+
+  .results :global(.hit__code) {
+    grid-row: span 2;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--red);
+    padding-top: 4px;
+  }
+
+  .results :global(.hit__title) {
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+
+  .results :global(.hit__excerpt) {
+    font-size: 0.9rem;
+    color: var(--text-soft);
+  }
+
+  .results :global(mark) {
+    background: none;
+    color: var(--text);
+    box-shadow: inset 0 -2px 0 var(--red);
+  }
+
+  @media (max-width: 560px) {
+    .results :global(.hit) {
+      grid-template-columns: 3.8rem 1fr;
+    }
+  }
+</style>

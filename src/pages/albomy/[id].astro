@@ -1,0 +1,85 @@
+---
+import CardPage from '../../components/CardPage.astro';
+import CardText from '../../components/CardText.astro';
+import Tag from '../../components/Tag.astro';
+import { cardCode, cardHref, drawers, findSong, getCards, resolveRef } from '../../lib/cards';
+
+export async function getStaticPaths() {
+  const albums = await getCards('albums');
+  return albums.map((album) => ({ params: { id: album.id }, props: { album } }));
+}
+
+const { album } = Astro.props;
+const d = album.data;
+const see = await Promise.all(d.see.map(resolveRef));
+
+// Трек со своей карточкой в ящике «П» становится ссылкой.
+const tracks = await Promise.all(
+  d.tracks.map(async (title) => {
+    const song = await findSong(title);
+    return { title, href: song && cardHref('songs', song.id) };
+  }),
+);
+
+const fields = [
+  { label: 'Год', value: d.year },
+  { label: 'Исполнитель', value: d.artist },
+  { label: 'Формат', value: d.format },
+  { label: 'Издатель', value: d.label },
+  { label: 'Номер по каталогу', value: d.catno },
+];
+---
+
+<CardPage
+  title={d.title}
+  description={`Карточка альбома «${d.title}» (${d.year}): издание, список песен, история.`}
+  code={cardCode('albums', d.num)}
+  drawer="Ящик «Альбомы»"
+  crumb={{ href: `${drawers.albums.path}/`, label: 'Альбомы' }}
+  fields={fields}
+  see={see}
+  sources={d.sources}
+>
+  <Fragment slot="tags">
+    <Tag tone={d.posthumous ? 'red' : 'muted'}>{d.posthumous ? 'после гибели' : 'при жизни'}</Tag>
+    <Tag>{d.status}</Tag>
+  </Fragment>
+
+  <CardText entry={album} />
+
+  {tracks.length > 0 && (
+    <section class="block" aria-labelledby="tracks-h">
+      <h2 id="tracks-h" class="block__h">Песни</h2>
+      <ol class="tracks">
+        {tracks.map((t) => <li>{t.href ? <a href={t.href}>{t.title}</a> : t.title}</li>)}
+      </ol>
+    </section>
+  )}
+</CardPage>
+
+<style>
+  .tracks {
+    margin: 0;
+    padding-left: 2rem;
+    columns: 2 18rem;
+    column-gap: 32px;
+  }
+
+  .tracks li {
+    padding: 3px 0;
+    break-inside: avoid;
+  }
+
+  .tracks li::marker {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .tracks a {
+    text-decoration-color: var(--red);
+  }
+
+  .tracks a:hover {
+    color: var(--red);
+  }
+</style>

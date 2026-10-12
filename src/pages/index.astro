@@ -2,9 +2,14 @@
 import Base from '../layouts/Base.astro';
 import Drawer from '../components/Drawer.astro';
 import Medal from '../components/Medal.astro';
-import { getSongs } from '../lib/cards';
+import { drawers as box, getCards, pages } from '../lib/cards';
 
-const songs = await getSongs();
+const [songs, albums, films, people] = await Promise.all([
+  getCards('songs'),
+  getCards('albums'),
+  getCards('films'),
+  getCards('people'),
+]);
 const lyric = songs.filter((s) => s.data.line === 'лирика');
 const civic = songs.filter((s) => s.data.line === 'гражданская');
 
@@ -16,16 +21,29 @@ function cardsWord(n: number) {
   return 'карточек';
 }
 
-// Ящики без href ещё не заполнены.
+const count = (n: number) => `${n} ${cardsWord(n)}`;
+const drawer = (key: keyof typeof box, note: string) => ({
+  letter: box[key].letter,
+  title: box[key].name,
+  href: `${box[key].path}/`,
+  note,
+});
+const single = (page: (typeof pages)[keyof typeof pages], note: string) => ({
+  letter: page.code[0],
+  title: page.title,
+  href: page.path,
+  note,
+});
+
 const drawers = [
-  { letter: 'Б', title: 'Биография', note: 'скоро' },
-  { letter: 'П', title: 'Песни', href: '/pesni/', note: `${songs.length} ${cardsWord(songs.length)}` },
-  { letter: 'А', title: 'Альбомы', note: 'скоро' },
-  { letter: 'К', title: 'Кино', note: 'скоро' },
-  { letter: 'Л', title: 'Люди', note: 'скоро' },
-  { letter: 'Д', title: '6 октября 1991', note: 'скоро' },
-  { letter: 'М', title: 'Память', note: 'скоро' },
-  { letter: 'С', title: 'От составителя', note: 'скоро' },
+  drawer('bio', '1956–1991'),
+  drawer('songs', count(songs.length)),
+  drawer('albums', count(albums.length)),
+  drawer('films', count(films.length)),
+  drawer('people', count(people.length)),
+  single(pages.death, 'следствие и приговор'),
+  single(pages.memory, 'музей, памятники, книги'),
+  single(pages.author, 'зачем эта картотека'),
 ];
 ---
 

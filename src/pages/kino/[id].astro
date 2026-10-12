@@ -1,0 +1,39 @@
+---
+import CardPage from '../../components/CardPage.astro';
+import CardText from '../../components/CardText.astro';
+import Tag from '../../components/Tag.astro';
+import { cardCode, drawers, getCards, resolveRef } from '../../lib/cards';
+
+export async function getStaticPaths() {
+  const films = await getCards('films');
+  return films.map((film) => ({ params: { id: film.id }, props: { film } }));
+}
+
+const { film } = Astro.props;
+const d = film.data;
+const see = await Promise.all(d.see.map(resolveRef));
+
+const fields = [
+  { label: 'Год', value: d.year },
+  { label: 'Режиссёр', value: d.director },
+  { label: 'Тальков в фильме', value: d.role },
+];
+---
+
+<CardPage
+  title={d.title}
+  description={`Фильм «${d.title}» (${d.year}): участие Игоря Талькова.`}
+  code={cardCode('films', d.num)}
+  drawer="Ящик «Кино»"
+  crumb={{ href: `${drawers.films.path}/`, label: 'Кино' }}
+  fields={fields}
+  see={see}
+  sources={d.sources}
+>
+  <Fragment slot="tags">
+    <Tag>{d.kind}</Tag>
+    <Tag>{d.status}</Tag>
+  </Fragment>
+
+  <CardText entry={film} />
+</CardPage>

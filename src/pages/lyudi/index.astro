@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro';
+import CardRow from '../../components/CardRow.astro';
+import DrawerHead from '../../components/DrawerHead.astro';
+import { cardCode, cardHref, drawers, getCards } from '../../lib/cards';
+
+const people = await getCards('people');
+---
+
+<Base title="Люди" description="Ящик «Люди»: семья Игоря Талькова и те, с кем он работал.">
+  <div class="wrap">
+    <DrawerHead letter={drawers.people.letter} title="Люди">
+      <p>Семья и люди, с которыми Тальков работал.</p>
+    </DrawerHead>
+    <ul class="card-list">
+      {people.map((p) => (
+        <li>
+          <CardRow
+            href={cardHref('people', p.id)}
+            code={cardCode('people', p.data.num)}
+            title={p.data.title}
+            note={p.data.role}
+            aside={p.data.life}
+          />
+        </li>
+      ))}
+    </ul>
+  </div>
+</Base>

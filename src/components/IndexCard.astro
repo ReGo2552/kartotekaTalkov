@@ -10,8 +10,8 @@ const { code, drawer, title } = Astro.props;
 ---
 
 <article class="card" data-pagefind-body>
-  <p class="card__meta">
-    <span class="card__code">{code}</span>
+  <p class="card__meta" data-pagefind-ignore>
+    <span class="card__code" data-pagefind-meta="code">{code}</span>
     <span>{drawer}</span>
     <span class="card__tags"><slot name="tags" /></span>
   </p>

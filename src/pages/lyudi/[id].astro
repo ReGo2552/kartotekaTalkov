@@ -1,0 +1,37 @@
+---
+import CardPage from '../../components/CardPage.astro';
+import CardText from '../../components/CardText.astro';
+import Tag from '../../components/Tag.astro';
+import { cardCode, drawers, getCards, resolveRef } from '../../lib/cards';
+
+export async function getStaticPaths() {
+  const people = await getCards('people');
+  return people.map((person) => ({ params: { id: person.id }, props: { person } }));
+}
+
+const { person } = Astro.props;
+const d = person.data;
+const see = await Promise.all(d.see.map(resolveRef));
+
+const fields = [
+  { label: 'Кто это', value: d.role },
+  { label: 'Годы жизни', value: d.life },
+];
+---
+
+<CardPage
+  title={d.title}
+  description={`${d.title} — ${d.role}. Карточка из картотеки Игоря Талькова.`}
+  code={cardCode('people', d.num)}
+  drawer="Ящик «Люди»"
+  crumb={{ href: `${drawers.people.path}/`, label: 'Люди' }}
+  fields={fields}
+  see={see}
+  sources={d.sources}
+>
+  <Fragment slot="tags">
+    <Tag>{d.status}</Tag>
+  </Fragment>
+
+  <CardText entry={person} />
+</CardPage>

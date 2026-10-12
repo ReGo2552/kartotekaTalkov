@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import CardRow from '../../components/CardRow.astro';
+import DrawerHead from '../../components/DrawerHead.astro';
+import { cardCode, cardHref, drawers, getCards } from '../../lib/cards';
+
+const albums = await getCards('albums');
+---
+
+<Base title="Альбомы" description="Ящик «Альбомы»: пластинки и компакт-диски Игоря Талькова.">
+  <div class="wrap">
+    <DrawerHead letter={drawers.albums.letter} title="Альбомы">
+      <p>
+        При жизни у Талькова не вышло ни одного сольного альбома. Его песни
+        выходили на миньоне и на пластинках других исполнителей. Первый альбом,
+        «Россия», появился в конце 1991 года, уже после его гибели. Здесь
+        собраны главные издания. Год, издатель и состав указаны по конвертам
+        и наклейкам.
+      </p>
+    </DrawerHead>
+    <ul class="card-list">
+      {albums.map((a) => (
+        <li>
+          <CardRow
+            href={cardHref('albums', a.id)}
+            code={cardCode('albums', a.data.num)}
+            title={a.data.title}
+            note={`${a.data.format} · ${a.data.label}`}
+            aside={a.data.year}
+          />
+        </li>
+      ))}
+    </ul>
+  </div>
+</Base>

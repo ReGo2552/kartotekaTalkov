@@ -120,6 +120,77 @@ h3 {
   box-shadow: inset 0 0 0 1px var(--text);
 }
 
+/* Текст карточки: история, комментарии */
+.prose {
+  max-width: 64ch;
+  color: #d6d6d6;
+}
+
+.prose h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 1.5rem;
+  color: var(--text);
+  margin: 32px 0 6px;
+}
+
+.prose h2:first-child {
+  margin-top: 0;
+}
+
+.prose p,
+.prose ul,
+.prose ol {
+  margin: 0 0 14px;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.2rem;
+}
+
+.prose li {
+  margin-bottom: 6px;
+}
+
+.prose strong {
+  color: #fff;
+}
+
+.prose a {
+  text-decoration-color: var(--red);
+}
+
+.prose a:hover {
+  color: var(--red-hover);
+}
+
+/* Список карточек ящика */
+.card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 880px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Блоки под текстом карточки: «Слушать», «См. также», «Источники» */
+.block {
+  margin-top: 36px;
+}
+
+.block__h {
+  font-family: var(--display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 1.25rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

@@ -1,25 +1,43 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 
-/** Буква ящика и адрес раздела для каждой коллекции. */
+/** Буква, адрес и название каждого ящика картотеки. */
 export const drawers = {
-  songs: { letter: 'П', path: '/pesni' },
+  bio: { letter: 'Б', path: '/biografiya', name: 'Биография' },
+  songs: { letter: 'П', path: '/pesni', name: 'Песни' },
+  albums: { letter: 'А', path: '/albomy', name: 'Альбомы' },
+  films: { letter: 'К', path: '/kino', name: 'Кино' },
+  people: { letter: 'Л', path: '/lyudi', name: 'Люди' },
 } as const;
 
 export type DrawerKey = keyof typeof drawers;
+
+/**
+ * Отдельные страницы-карточки без своего ящика.
+ * Шифр задан вручную, чтобы совпадал с буквой на главной.
+ */
+export const pages = {
+  death: { code: 'Д-001', path: '/6-oktyabrya-1991/', title: '6 октября 1991' },
+  memory: { code: 'М-001', path: '/pamyat/', title: 'Память' },
+  author: { code: 'С-001', path: '/ot-sostavitelya/', title: 'От составителя' },
+} as const;
 
 /** Шифр карточки: П-007. */
 export function cardCode(collection: DrawerKey, num: number): string {
   return `${drawers[collection].letter}-${String(num).padStart(3, '0')}`;
 }
 
+/** Периоды биографии живут на одной странице, поэтому у них адрес-якорь. */
 export function cardHref(collection: DrawerKey, id: string): string {
-  return `${drawers[collection].path}/${id}/`;
+  const { path } = drawers[collection];
+  return collection === 'bio' ? `${path}/#${id}` : `${path}/${id}/`;
 }
 
-export async function getSongs(): Promise<CollectionEntry<'songs'>[]> {
-  const songs = await getCollection('songs');
-  return songs.sort((a, b) => a.data.num - b.data.num);
+export async function getCards<C extends DrawerKey>(collection: C): Promise<CollectionEntry<C>[]> {
+  const cards = await getCollection(collection);
+  return cards.sort((a, b) => a.data.num - b.data.num);
 }
+
+export const getSongs = () => getCards('songs');
 
 /** Разворачивает ссылку «songs/rossiya» в шифр, название и адрес. */
 export async function resolveRef(ref: string) {
@@ -33,8 +51,33 @@ export async function resolveRef(ref: string) {
   };
 }
 
+/** Название без регистра, «ё» и знаков — чтобы трек «Стоп!.. Думаю себе…» нашёл свою карточку. */
+export function titleKey(title: string): string {
+  return title
+    .toLowerCase()
+    .replaceAll('ё', 'е')
+    .replace(/[^a-zа-я0-9]+/g, ' ')
+    .trim();
+}
+
+/** Карточка песни по названию трека, если она есть в ящике. */
+export async function findSong(title: string) {
+  const key = titleKey(title);
+  return (await getSongs()).find((s) => titleKey(s.data.title) === key);
+}
+
+/** Альбомы картотеки, где есть эта песня, — в виде ссылок «albums/id». */
+export async function albumsWithSong(title: string): Promise<string[]> {
+  const key = titleKey(title);
+  const albums = await getCards('albums');
+  return albums.filter((a) => a.data.tracks.some((t) => titleKey(t) === key)).map((a) => `albums/${a.id}`);
+}
+
 /** Все адреса карточек — для кнопки «вытянуть наугад». */
 export async function allCardHrefs(): Promise<string[]> {
-  const songs = await getSongs();
-  return songs.map((s) => cardHref('songs', s.id));
+  const keys = Object.keys(drawers) as DrawerKey[];
+  const hrefs = await Promise.all(
+    keys.map(async (key) => (await getCards(key)).map((c) => cardHref(key, c.id))),
+  );
+  return [...hrefs.flat(), ...Object.values(pages).map((p) => p.path)];
 }

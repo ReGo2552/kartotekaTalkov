@@ -1,0 +1,40 @@
+---
+/** Шапка раздела: ярлык ящика, крупное название, вводный текст из слота. */
+interface Props {
+  letter: string;
+  title: string;
+}
+
+const { letter, title } = Astro.props;
+---
+
+<header class="head">
+  <p class="eyebrow">Ящик «{letter}»</p>
+  <h1>{title}</h1>
+  <div class="sub"><slot /></div>
+</header>
+
+<style>
+  .head {
+    padding-top: 56px;
+    margin-bottom: 36px;
+  }
+
+  .head h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(3.6rem, 10vw, 6.5rem);
+    line-height: 0.85;
+    margin: 6px 0 20px;
+  }
+
+  .sub {
+    color: var(--text-soft);
+    max-width: 60ch;
+  }
+
+  .sub :global(p) {
+    margin: 0 0 10px;
+  }
+</style>

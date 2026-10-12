@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { allCardHrefs } from '../lib/cards';
+import { allCardHrefs, pages } from '../lib/cards';
 
 interface Props {
   title?: string;
@@ -19,7 +19,10 @@ const nav = [
   { href: '/kino/', label: 'Кино' },
   { href: '/lyudi/', label: 'Люди' },
   { href: '/pamyat/', label: 'Память' },
+  { href: '/poisk/', label: 'Поиск' },
 ];
+
+const footLinks = [pages.death, pages.author];
 ---
 
 <!doctype html>
@@ -53,7 +56,10 @@ const nav = [
           Любительская картотека, собранная поклонником. Не является официальным сайтом.
           Права на песни, записи и фотографии принадлежат их правообладателям.
         </p>
-        <button class="foot__random" type="button" data-random>Случайная карточка</button>
+        <div class="foot__links">
+          {footLinks.map((l) => <a href={l.path}>{l.title}</a>)}
+          <button class="foot__random" type="button" data-random>Случайная карточка</button>
+        </div>
       </div>
     </footer>
 
@@ -140,6 +146,22 @@ const nav = [
   .foot p {
     margin: 0;
     max-width: 62ch;
+  }
+
+  .foot__links {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .foot__links a {
+    text-decoration: none;
+  }
+
+  .foot__links a:hover {
+    color: var(--text);
   }
 
   .foot__random {

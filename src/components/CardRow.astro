@@ -1,0 +1,80 @@
+---
+/** Строка в списке ящика: шифр, название, пометка справа. */
+interface Props {
+  href: string;
+  code: string;
+  title: string;
+  /** Год или другая короткая пометка справа. */
+  aside?: string;
+  /** Пояснение под названием: роль, формат издания. */
+  note?: string;
+}
+
+const { href, code, title, aside, note } = Astro.props;
+---
+
+<a class="row" href={href}>
+  <span class="row__code">{code}</span>
+  <span class="row__main">
+    <span class="row__title">{title}<slot name="label" /></span>
+    {note && <span class="row__note">{note}</span>}
+  </span>
+  {aside && <span class="row__aside">{aside}</span>}
+</a>
+
+<style>
+  .row {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr auto;
+    gap: 12px;
+    align-items: baseline;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+    text-decoration: none;
+  }
+
+  .row:hover .row__title {
+    color: var(--red);
+  }
+
+  .row__code {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--red);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .row__main {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .row__title {
+    font-size: 1.2rem;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
+  .row__note {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .row__aside {
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  @media (max-width: 560px) {
+    .row {
+      grid-template-columns: 3.8rem 1fr;
+    }
+
+    .row__aside {
+      grid-column: 2;
+      text-align: left;
+      margin-top: -8px;
+    }
+  }
+</style>

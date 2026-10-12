@@ -1,0 +1,24 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import type { DrawerKey } from '../lib/cards';
+
+/** Текст карточки из markdown-файла или пометка, что он ещё пишется. */
+interface Props {
+  entry: CollectionEntry<DrawerKey>;
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const hasBody = entry.body?.trim();
+---
+
+<div class="prose">
+  {hasBody ? <Content /> : <p class="pending">Карточка заполняется. Текст появится после сверки источников.</p>}
+</div>
+
+<style>
+  .pending {
+    color: var(--muted);
+    font-style: italic;
+  }
+</style>

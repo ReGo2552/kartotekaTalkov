@@ -1,0 +1,34 @@
+---
+import Base from '../../layouts/Base.astro';
+import CardRow from '../../components/CardRow.astro';
+import DrawerHead from '../../components/DrawerHead.astro';
+import { cardCode, cardHref, drawers, getCards } from '../../lib/cards';
+
+const films = await getCards('films');
+---
+
+<Base title="Кино" description="Ящик «Кино»: фильмы, в которых снимался Игорь Тальков и звучат его песни.">
+  <div class="wrap">
+    <DrawerHead letter={drawers.films.letter} title="Кино">
+      <p>
+        В 1990–1991 годах Талькова начали приглашать в кино. Он успел сыграть
+        две большие роли: главаря банды в «За последней чертой» и князя
+        Серебряного в «Царе Иване Грозном». Первый из этих фильмов вышел
+        на экраны в декабре 1991 года, уже после гибели актёра.
+      </p>
+    </DrawerHead>
+    <ul class="card-list">
+      {films.map((f) => (
+        <li>
+          <CardRow
+            href={cardHref('films', f.id)}
+            code={cardCode('films', f.data.num)}
+            title={f.data.title}
+            note={f.data.role}
+            aside={f.data.year}
+          />
+        </li>
+      ))}
+    </ul>
+  </div>
+</Base>

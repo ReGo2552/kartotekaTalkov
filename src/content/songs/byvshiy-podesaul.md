@@ -3,7 +3,7 @@ num: 3
 title: Бывший подъесаул
 line: гражданская
 year: '1990'
-album: «Россия» — грампластинка 1991 года, вышла после гибели автора
+album: «Россия» — грампластинка, конец 1991 года
 known: телефестиваль «Песня года», 1990
 status: проверено
 see:
@@ -16,6 +16,8 @@ sources:
     url: https://ru.ruwiki.ru/wiki/Бывший_подъесаул
   - title: Дискография Игоря Талькова (Академик)
     url: https://dic.academic.ru/dic.nsf/ruwiki/220673
+  - title: Discogs — Игорь Тальков, «Россия» (Ладъ, 1991)
+    url: https://www.discogs.com/release/1443090
 ---
 
 ## История

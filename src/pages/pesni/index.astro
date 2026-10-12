@@ -1,57 +1,28 @@
 ---
 import Base from '../../layouts/Base.astro';
+import DrawerHead from '../../components/DrawerHead.astro';
 import SongRow from '../../components/SongRow.astro';
-import { getSongs } from '../../lib/cards';
+import { drawers, getSongs } from '../../lib/cards';
 
 const songs = await getSongs();
 ---
 
 <Base title="Песни" description="Ящик «Песни»: карточки песен Игоря Талькова.">
   <div class="wrap">
-    <header class="head">
-      <p class="eyebrow">Ящик «П»</p>
-      <h1>Песни</h1>
-      <p class="sub">
+    <DrawerHead letter={drawers.songs.letter} title="Песни">
+      <p>
         Карточки разложены по шифрам. У каждой песни указана линия:
         лирика или <span class="civic">гражданская</span>.
       </p>
-    </header>
-    <ul class="list">
+    </DrawerHead>
+    <ul class="card-list">
       {songs.map((s) => <li><SongRow song={s} showLine /></li>)}
     </ul>
   </div>
 </Base>
 
 <style>
-  .head {
-    padding-top: 56px;
-    margin-bottom: 36px;
-  }
-
-  .head h1 {
-    font-family: var(--display);
-    font-weight: 800;
-    text-transform: uppercase;
-    font-size: clamp(3.6rem, 10vw, 6.5rem);
-    line-height: 0.85;
-    margin: 6px 0 20px;
-  }
-
-  .sub {
-    color: var(--text-soft);
-    max-width: 60ch;
-    margin: 0;
-  }
-
   .civic {
     color: var(--red);
-  }
-
-  .list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    max-width: 880px;
-    border-bottom: 1px solid var(--line);
   }
 </style>
