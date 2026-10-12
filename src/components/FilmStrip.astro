@@ -1,0 +1,215 @@
+---
+import { Image } from 'astro:assets';
+import { pages } from '../lib/cards';
+import type { Frame } from '../lib/roll';
+
+/**
+ * Полоса фотоплёнки: кадры с перфорацией и номерами по краю.
+ * Кадр со снимком открывает окно проявки (на «Плёнке») или ведёт на «Плёнку» (с главной).
+ * Пустой кадр — год, от которого снимка не осталось; он ведёт в период биографии.
+ */
+interface Props {
+  frames: Frame[];
+  /** lab — открывать окно проявки на этой странице, page — вести на «Плёнку». */
+  mode?: 'lab' | 'page';
+}
+
+const { frames, mode = 'lab' } = Astro.props;
+
+const label = (f: Frame) => `${f.year} · ${f.age}`;
+---
+
+<ol class="strip" data-reveal>
+  {frames.map((f) => {
+    const [shot] = f.shots;
+    const more = f.shots.length - 1;
+    return (
+      <li class:list={['frame', { 'frame--dark': !shot }]} id={mode === 'lab' ? `kadr-${f.n}` : undefined}>
+        <div class="frame__film">
+          {shot ? (
+            <a
+              class="frame__shot"
+              href={mode === 'lab' ? shot.full : `${pages.roll.path}#kadr-${f.n}`}
+              data-shot={mode === 'lab' ? shot.index : undefined}
+              aria-label={`Кадр ${f.n}, ${f.year}: ${shot.caption}${more ? `. Ещё снимков этого года: ${more}` : ''}`}
+            >
+              <Image src={shot.src} alt="" widths={[240, 400]} sizes="(max-width: 640px) 33vw, 190px" style="object-position: 50% 25%" />
+              {more > 0 && <span class="frame__more" aria-hidden="true">+{more}</span>}
+              {shot.best && (
+                <svg class="frame__mark" viewBox="0 0 100 70" preserveAspectRatio="none" aria-hidden="true">
+                  <path pathLength="100" d="M14,40 C8,16 40,4 66,7 C92,10 99,31 92,48 C85,65 50,69 28,63 C10,58 2,44 10,27 C14,19 22,13 31,10" />
+                </svg>
+              )}
+            </a>
+          ) : f.period ? (
+            <a class="frame__shot" href={f.period.href} aria-label={`Кадр ${f.n}, ${f.year}: снимка нет. Период «${f.period.title}» в биографии`}>
+              <span class="frame__year" aria-hidden="true">{f.year}</span>
+              <span class="frame__period" aria-hidden="true">{f.period.title}</span>
+            </a>
+          ) : (
+            <span class="frame__shot">
+              <span class="frame__year">{f.year}</span>
+            </span>
+          )}
+          <span class="frame__edge" aria-hidden="true"><span>{f.n}</span><span>{f.n}A ▸</span></span>
+        </div>
+        <span class="frame__label">{label(f)}</span>
+      </li>
+    );
+  })}
+</ol>
+
+<style>
+  /* Плёнка на отпечатке: края чёрные, отверстия перфорации чуть светлее, номера кадров светятся по краю. */
+  .strip {
+    --film: #050505;
+    --hole: #262420;
+    --edge: #c9a25a;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (max-width: 640px) {
+    .strip {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      row-gap: 10px;
+    }
+  }
+
+  .frame {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .frame__film {
+    padding: 16px 5px 0;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 7px, var(--hole) 7px 15px, transparent 15px 22px) 0 4px / 100% 8px no-repeat,
+      var(--film);
+  }
+
+  .frame__shot {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    border-radius: 2px;
+    background: #0d0d0d;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .frame__shot :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition:
+      filter 0.25s,
+      scale 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  a.frame__shot:hover :global(img),
+  a.frame__shot:focus-visible :global(img) {
+    scale: 1.05;
+    filter: brightness(1.12);
+  }
+
+  /* Непроявленный кадр: на отпечатке он чёрный, сквозь черноту проступает год. */
+  .frame--dark .frame__shot {
+    display: grid;
+    place-content: center;
+    text-align: center;
+    background: radial-gradient(ellipse at 50% 45%, #161616, #090909 70%);
+  }
+
+  .frame__year {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    line-height: 1;
+    color: #2b2b2b;
+    transition: color 0.2s;
+  }
+
+  .frame__period {
+    margin-top: 4px;
+    padding-inline: 4px;
+    font-size: 0.68rem;
+    line-height: 1.2;
+    color: transparent;
+    transition: color 0.2s;
+  }
+
+  .frame--dark a.frame__shot:hover .frame__year,
+  .frame--dark a.frame__shot:focus-visible .frame__year {
+    color: var(--muted);
+  }
+
+  .frame--dark a.frame__shot:hover .frame__period,
+  .frame--dark a.frame__shot:focus-visible .frame__period {
+    color: var(--text-soft);
+  }
+
+  .frame__more {
+    position: absolute;
+    right: 5px;
+    bottom: 4px;
+    padding: 0 5px;
+    border-radius: 2px;
+    background: rgb(0 0 0 / 0.75);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  /* Отметка фотографа красным карандашом на контрольном листе */
+  .frame__mark {
+    position: absolute;
+    inset: 3% 2%;
+    width: 96%;
+    height: 94%;
+    fill: none;
+    stroke: var(--red);
+    stroke-width: 3;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+    filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.6));
+  }
+
+  .frame__edge {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 2px 0;
+    height: 22px;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: var(--edge);
+    opacity: 0.75;
+    background: repeating-linear-gradient(90deg, transparent 0 7px, var(--hole) 7px 15px, transparent 15px 22px) 0 12px / 100% 8px no-repeat;
+  }
+
+  .frame__label {
+    padding: 6px 5px 0;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal-on .strip.is-in .frame__mark path {
+      stroke-dasharray: 100;
+      animation: pencil 1.1s cubic-bezier(0.5, 0.1, 0.3, 1) 0.5s both;
+    }
+  }
+
+  @keyframes pencil {
+    from {
+      stroke-dashoffset: 100;
+    }
+  }
+</style>

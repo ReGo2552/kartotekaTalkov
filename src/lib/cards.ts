@@ -19,6 +19,7 @@ export const pages = {
   death: { code: 'Д-001', path: '/6-oktyabrya-1991/', title: '6 октября 1991' },
   memory: { code: 'М-001', path: '/pamyat/', title: 'Память' },
   author: { code: 'С-001', path: '/ot-sostavitelya/', title: 'От составителя' },
+  roll: { code: 'Ф-001', path: '/plyonka/', title: 'Плёнка' },
 } as const;
 
 /** Шифр карточки: П-007. */

@@ -131,4 +131,33 @@ const people = defineCollection({
   }),
 });
 
-export const collections = { bio, songs, albums, films, people, stroki };
+/**
+ * Кадры «Плёнки»: один год жизни — один кадр, с 1956-го по 1991-й.
+ * Файл кадра лежит в src/content/kadry, снимок — рядом с ним или в другой карточке.
+ */
+const kadry = defineCollection({
+  loader: from('kadry'),
+  schema: ({ image }) => z.object({
+    /** Год, на чей кадр встаёт снимок: когда снято или когда вышла пластинка. */
+    year: z.number().int().min(1956).max(1991),
+    /** Точнее года, если известно: «январь 1991». */
+    date: z.string().optional(),
+    /** Что на кадре: снимок Талькова, обложка пластинки, постер фильма или место. */
+    kind: z.enum(['снимок', 'обложка', 'постер', 'место']),
+    src: image(),
+    alt: z.string(),
+    /** Подпись на обороте. */
+    caption: z.string(),
+    /** Автор, год и лицензия, как у фото карточек. */
+    credit: z.string(),
+    url: z.string().optional(),
+    /** Карточка, к которой относится кадр: «albums/rossiya». */
+    see: z.string().optional(),
+    /** Обвести красным карандашом — лучший кадр плёнки. */
+    best: z.boolean().default(false),
+    /** Порядок снимков внутри одного года: первый виден на плёнке. */
+    order: z.number().default(0),
+  }),
+});
+
+export const collections = { bio, songs, albums, films, people, stroki, kadry };

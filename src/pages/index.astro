@@ -2,8 +2,10 @@
 import { Image, Picture } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Drawer from '../components/Drawer.astro';
+import FilmStrip from '../components/FilmStrip.astro';
 import Medal from '../components/Medal.astro';
 import { drawers as box, getCards, pages, resolveRef } from '../lib/cards';
+import { getRoll } from '../lib/roll';
 import hero from '../photos/talkov-1991.png';
 import autograph from '../photos/avtograf.png';
 
@@ -51,6 +53,8 @@ const drawers = [
 
 // Последняя строка главной — из песни «Я вернусь».
 const coda = await resolveRef('songs/ya-vernus');
+// С «Плёнки» — последние шесть кадров, 1986–1991.
+const lastStrip = (await getRoll()).slice(-6);
 ---
 
 <Base>
@@ -103,6 +107,16 @@ const coda = await resolveRef('songs/ya-vernus');
     <div class="drawers">
       {drawers.map((d) => <Drawer {...d} />)}
     </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="roll-h">
+    <h2 id="roll-h" class="h2">Плёнка</h2>
+    <p class="intro">
+      Тридцать шесть лет — тридцать шесть кадров, по одному на год.
+      Вот последние шесть.
+    </p>
+    <FilmStrip frames={lastStrip} mode="page" />
+    <a class="roll-more" href={pages.roll.path}>Вся плёнка →</a>
   </section>
 
   <section class="wrap coda" aria-label="Строки из песни «Я вернусь»" data-reveal>
@@ -229,6 +243,16 @@ const coda = await resolveRef('songs/ya-vernus');
     color: var(--text-soft);
     max-width: 56ch;
     margin: -12px 0 36px;
+  }
+
+  .roll-more {
+    display: inline-block;
+    margin-top: 18px;
+    color: var(--text-soft);
+  }
+
+  .roll-more:hover {
+    color: var(--text);
   }
 
   /* Последняя строка главной: главная начинается датами 1956–1991, а заканчивается обещанием вернуться. */

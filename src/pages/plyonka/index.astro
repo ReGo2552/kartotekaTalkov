@@ -1,0 +1,420 @@
+---
+import Base from '../../layouts/Base.astro';
+import DrawerHead from '../../components/DrawerHead.astro';
+import FilmStrip from '../../components/FilmStrip.astro';
+import Note from '../../components/Note.astro';
+import { pages } from '../../lib/cards';
+import { FIRST, LAST, getRoll } from '../../lib/roll';
+
+const roll = await getRoll();
+const shots = roll.flatMap((f) => f.shots);
+const exposed = roll.filter((f) => f.shots.length).length;
+
+// Контрольный лист: плёнка разрезана на полосы по шесть кадров.
+const strips = Array.from({ length: roll.length / 6 }, (_, i) => roll.slice(i * 6, i * 6 + 6));
+
+// Всё, что нужно окну проявки, — без самих файлов.
+const lab = shots.map((s) => ({
+  full: s.full,
+  ratio: s.src.width / s.src.height,
+  alt: s.alt,
+  caption: s.caption,
+  kind: s.kind,
+  when: s.date ?? String(s.year),
+  frame: s.frame,
+  age: roll[s.frame - 1].age,
+  credit: s.credit,
+  url: s.url,
+  card: s.card,
+}));
+---
+
+<Base
+  title={pages.roll.title}
+  description={`Фотоальбом-плёнка: 36 кадров, по одному на каждый год жизни Игоря Талькова, ${FIRST}–${LAST}.`}
+>
+  <div class="wrap">
+    <DrawerHead letter={pages.roll.code[0]} title={pages.roll.title}>
+      <p>
+        Игорь Тальков прожил 36 лет. Ровно столько кадров помещается на фотоплёнку.
+        Здесь один кадр — один год, с {FIRST}-го по {LAST}-й. Нажмите на кадр, и снимок
+        проявится, а на обороте будет написано, что на нём и кто снимал.
+        Где снимка нет, кадр остался тёмным и ведёт в биографию.
+      </p>
+    </DrawerHead>
+
+    <Note>
+      <p>
+        Проявлено {exposed} кадров из 36. Свободных фотографий Талькова почти нет: большая
+        часть снимков принадлежит ТАСС, РИА Новости, фотографам и семье. Поэтому на плёнке
+        пока единственный снимок под свободной лицензией, остальное — обложки пластинок,
+        постеры и места. Обложки и постеры принадлежат издателям и киностудиям.
+      </p>
+    </Note>
+
+    <div class="sheet">
+      {strips.map((s) => <FilmStrip frames={s} />)}
+    </div>
+  </div>
+
+  <dialog class="lab" aria-labelledby="lab-title" data-lab>
+    <div class="lab__bar">
+      <p class="lab__title" id="lab-title" data-lab-title></p>
+      <form method="dialog">
+        <button class="lab__btn" aria-label="Закрыть">✕</button>
+      </form>
+    </div>
+
+    <div class="lab__stage">
+      <button class="lab__btn lab__nav" type="button" data-lab-step="-1" aria-label="Предыдущий снимок">←</button>
+      <div class="print" data-print>
+        <div class="print__inner">
+          <img class="print__face print__front" alt="" data-lab-img />
+          <div class="print__face print__back" data-lab-back>
+            <p class="back__stamp">Картотека Талькова · {pages.roll.code}</p>
+            <p class="back__frame" data-lab-frame></p>
+            <p class="back__caption" data-lab-caption></p>
+            <p class="back__credit" data-lab-credit></p>
+            <p class="back__card" data-lab-card></p>
+          </div>
+        </div>
+      </div>
+      <button class="lab__btn lab__nav" type="button" data-lab-step="1" aria-label="Следующий снимок">→</button>
+    </div>
+
+    <div class="lab__actions">
+      <button class="btn btn--ghost" type="button" aria-pressed="false" data-lab-flip>Перевернуть</button>
+    </div>
+  </dialog>
+
+  <script is:inline type="application/json" id="lab-data" set:html={JSON.stringify(lab)} />
+</Base>
+
+<style>
+  .sheet {
+    display: grid;
+    gap: 26px;
+    margin-bottom: 72px;
+  }
+
+  /* ── Окно проявки ──
+     Красный свет фотолаборатории; снимок проступает, как в ванночке с проявителем. */
+  .lab {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: radial-gradient(ellipse at 50% 20%, #4a0703, #0a0000 70%);
+    color: var(--text);
+  }
+
+  .lab[open] {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .lab::backdrop {
+    background: #000;
+  }
+
+  .lab__bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+  }
+
+  .lab__title {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(1.05rem, 4vw, 1.4rem);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-wrap: balance;
+    color: #ffb3a6;
+  }
+
+  .lab__btn {
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid rgb(255 255 255 / 0.18);
+    border-radius: 999px;
+    background: rgb(0 0 0 / 0.35);
+    color: var(--text);
+    font: inherit;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+
+  .lab__btn:hover {
+    border-color: var(--text);
+  }
+
+  .lab__btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .lab__stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 2vw, 24px);
+    min-height: 0;
+    padding-inline: 16px;
+  }
+
+  /* Отпечаток: размеры берутся из пропорций снимка, чтобы у оборота был тот же формат. */
+  .print {
+    --ratio: 0.75;
+    flex: none;
+    width: min(calc(100vw - 150px), calc((100dvh - 190px) * var(--ratio)), 900px);
+    aspect-ratio: var(--ratio);
+    perspective: 1600px;
+  }
+
+  @media (max-width: 640px) {
+    .lab__stage {
+      flex-wrap: wrap;
+      align-content: center;
+    }
+
+    .print {
+      order: -1;
+      width: min(calc(100vw - 32px), calc((100dvh - 240px) * var(--ratio)));
+    }
+  }
+
+  .print__inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  .print.is-flipped .print__inner {
+    transform: rotateY(180deg);
+  }
+
+  .print__face {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    box-shadow: 0 18px 60px rgb(0 0 0 / 0.6);
+  }
+
+  .print__front {
+    object-fit: cover;
+    border: 6px solid #f1ede4;
+    background: #000;
+  }
+
+  /* Оборот фотокарточки: бумага, архивный штамп, подпись от руки */
+  .print__back {
+    transform: rotateY(180deg);
+    overflow: auto;
+    padding: clamp(14px, 4%, 32px);
+    background: #ece6d8;
+    color: #26221b;
+    font-size: clamp(0.8rem, 1.6vw, 0.95rem);
+    line-height: 1.45;
+  }
+
+  .print__back::after {
+    content: attr(data-n);
+    position: absolute;
+    right: 0.3em;
+    bottom: -0.15em;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(5rem, 22vw, 11rem);
+    line-height: 1;
+    color: rgb(38 34 27 / 0.08);
+    pointer-events: none;
+  }
+
+  .print__back p {
+    margin: 0 0 0.8em;
+  }
+
+  .back__stamp {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 2px solid var(--red);
+    color: var(--red);
+    font-family: var(--display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    rotate: -3deg;
+  }
+
+  .back__frame {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.6em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .back__caption {
+    font-style: italic;
+  }
+
+  .back__credit,
+  .back__card {
+    color: #5b5446;
+  }
+
+  .print__back a {
+    color: inherit;
+  }
+
+  .lab__actions {
+    display: flex;
+    justify-content: center;
+    padding: 12px 16px 20px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .print__front.is-developing {
+      animation: develop 2.6s cubic-bezier(0.4, 0.1, 0.3, 1) both;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .print__inner {
+      transition: none;
+    }
+  }
+
+  /* Сначала белая бумага, потом под красным светом проступают тени, потом снимок целиком. */
+  @keyframes develop {
+    from {
+      filter: brightness(2.2) contrast(0.15) sepia(1) saturate(0.4);
+    }
+
+    45% {
+      filter: brightness(1.2) contrast(0.7) sepia(1) hue-rotate(-30deg) saturate(2.4);
+    }
+
+    to {
+      filter: none;
+    }
+  }
+</style>
+
+<script>
+  interface Slide {
+    full: string;
+    ratio: number;
+    alt: string;
+    caption: string;
+    kind: string;
+    when: string;
+    frame: number;
+    age: string;
+    credit: string;
+    url?: string;
+    card?: { code: string; title: string; href: string };
+  }
+
+  const slides: Slide[] = JSON.parse(document.getElementById('lab-data')?.textContent ?? '[]');
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lab]')!;
+  const print = dialog.querySelector<HTMLElement>('[data-print]')!;
+  const img = dialog.querySelector<HTMLImageElement>('[data-lab-img]')!;
+  const flip = dialog.querySelector<HTMLButtonElement>('[data-lab-flip]')!;
+  const steps = dialog.querySelectorAll<HTMLButtonElement>('[data-lab-step]');
+  const $ = (name: string) => dialog.querySelector<HTMLElement>(`[data-lab-${name}]`)!;
+
+  let current = 0;
+
+  // Текст на обороте собирается из узлов, а не из HTML-строки: подписи — это данные.
+  const link = (text: string, href?: string) => {
+    if (!href) return document.createTextNode(text);
+    const a = document.createElement('a');
+    a.href = href;
+    a.textContent = text;
+    return a;
+  };
+
+  const setFlipped = (on: boolean) => {
+    print.classList.toggle('is-flipped', on);
+    flip.setAttribute('aria-pressed', String(on));
+    flip.textContent = on ? 'Лицевой стороной' : 'Перевернуть';
+  };
+
+  const show = (i: number) => {
+    current = i;
+    const s = slides[i];
+    print.style.setProperty('--ratio', String(s.ratio));
+    setFlipped(false);
+
+    img.classList.remove('is-developing');
+    img.src = s.full;
+    img.alt = s.alt;
+    // Перезапуск анимации проявки: класс снимается и ставится после перерисовки.
+    void img.offsetWidth;
+    img.classList.add('is-developing');
+
+    // Если в году несколько снимков — «снимок 2 из 5».
+    const same = slides.filter((x) => x.frame === s.frame);
+    const nth = same.length > 1 ? ` · снимок ${same.indexOf(s) + 1} из ${same.length}` : '';
+    $('title').textContent = `Кадр ${s.frame} · ${s.when}${nth}`;
+    $('back').dataset.n = String(s.frame);
+    $('frame').textContent = `Кадр ${s.frame} · ${s.when} · ${s.age}`;
+    $('caption').textContent = `${s.kind[0].toUpperCase()}${s.kind.slice(1)}. ${s.caption}`;
+    $('credit').replaceChildren('Источник: ', link(s.credit, s.url));
+    $('card').replaceChildren(...(s.card ? ['Карточка: ', link(`${s.card.code} «${s.card.title}»`, s.card.href)] : []));
+
+    steps[0].disabled = i === 0;
+    steps[1].disabled = i === slides.length - 1;
+  };
+
+  const open = (i: number) => {
+    show(i);
+    if (!dialog.open) dialog.showModal();
+  };
+
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('[data-shot]')) {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      open(Number(a.dataset.shot));
+    });
+  }
+
+  for (const b of steps) {
+    b.addEventListener('click', () => show(current + Number(b.dataset.labStep)));
+  }
+
+  flip.addEventListener('click', () => setFlipped(!print.classList.contains('is-flipped')));
+
+  // Стрелки слушает документ: после перехода с главной фокус может быть ещё не в окне.
+  document.addEventListener('keydown', (e) => {
+    if (!dialog.open) return;
+    if (e.key === 'ArrowLeft' && current > 0) show(current - 1);
+    if (e.key === 'ArrowRight' && current < slides.length - 1) show(current + 1);
+  });
+
+  // Щелчок по красному полю вокруг снимка закрывает окно.
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog || (e.target as HTMLElement).classList.contains('lab__stage')) dialog.close();
+  });
+
+  // С главной ведут ссылки вида /plyonka/#kadr-36 — сразу проявляем этот кадр.
+  const openFromHash = () => {
+    const frame = Number(location.hash.match(/^#kadr-(\d+)$/)?.[1]);
+    const first = slides.findIndex((s) => s.frame === frame);
+    if (first >= 0) open(first);
+  };
+  openFromHash();
+  addEventListener('hashchange', openFromHash);
+</script>
