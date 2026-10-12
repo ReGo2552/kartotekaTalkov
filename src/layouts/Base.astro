@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { allCardHrefs, pages } from '../lib/cards';
+import { allCardHrefs, drawers, pages, url } from '../lib/cards';
 
 interface Props {
   title?: string;
@@ -13,14 +13,14 @@ const cards = await allCardHrefs();
 const path = Astro.url.pathname;
 
 const nav = [
-  { href: '/biografiya/', label: 'Биография' },
-  { href: '/pesni/', label: 'Песни' },
-  { href: '/albomy/', label: 'Альбомы' },
-  { href: '/kino/', label: 'Кино' },
-  { href: '/lyudi/', label: 'Люди' },
-  { href: '/plyonka/', label: 'Плёнка' },
-  { href: '/pamyat/', label: 'Память' },
-  { href: '/poisk/', label: 'Поиск' },
+  { href: `${drawers.bio.path}/`, label: 'Биография' },
+  { href: `${drawers.songs.path}/`, label: 'Песни' },
+  { href: `${drawers.albums.path}/`, label: 'Альбомы' },
+  { href: `${drawers.films.path}/`, label: 'Кино' },
+  { href: `${drawers.people.path}/`, label: 'Люди' },
+  { href: pages.roll.path, label: 'Плёнка' },
+  { href: pages.memory.path, label: 'Память' },
+  { href: url('/poisk/'), label: 'Поиск' },
 ];
 
 const footLinks = [pages.death, pages.author];
@@ -33,7 +33,7 @@ const footLinks = [pages.death, pages.author];
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
     <link rel="expect" href="#page-end" blocking="render" />
     <script is:inline>
       (function () {
@@ -78,7 +78,7 @@ const footLinks = [pages.death, pages.author];
   <body>
     <header class="top">
       <div class="wrap top__in">
-        <a href="/" class="logo"><b aria-hidden="true"></b>Картотека Талькова</a>
+        <a href={url('/')} class="logo"><b aria-hidden="true"></b>Картотека Талькова</a>
         <nav class="top__nav" aria-label="Разделы">
           {nav.map((item) => (
             <a href={item.href} aria-current={path.startsWith(item.href) ? 'page' : undefined}>{item.label}</a>

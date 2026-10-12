@@ -1,12 +1,20 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 
+/**
+ * Адрес внутри сайта с учётом base из astro.config.mjs: url('/pesni/') → '/kartotekaTalkov/pesni/'.
+ * Ссылки от корня пишутся только через неё, иначе на GitHub Pages они ведут мимо сайта.
+ */
+export function url(path: string): string {
+  return import.meta.env.BASE_URL.replace(/\/$/, '') + path;
+}
+
 /** Буква, адрес и название каждого ящика картотеки. */
 export const drawers = {
-  bio: { letter: 'Б', path: '/biografiya', name: 'Биография' },
-  songs: { letter: 'П', path: '/pesni', name: 'Песни' },
-  albums: { letter: 'А', path: '/albomy', name: 'Альбомы' },
-  films: { letter: 'К', path: '/kino', name: 'Кино' },
-  people: { letter: 'Л', path: '/lyudi', name: 'Люди' },
+  bio: { letter: 'Б', path: url('/biografiya'), name: 'Биография' },
+  songs: { letter: 'П', path: url('/pesni'), name: 'Песни' },
+  albums: { letter: 'А', path: url('/albomy'), name: 'Альбомы' },
+  films: { letter: 'К', path: url('/kino'), name: 'Кино' },
+  people: { letter: 'Л', path: url('/lyudi'), name: 'Люди' },
 } as const;
 
 export type DrawerKey = keyof typeof drawers;
@@ -16,10 +24,10 @@ export type DrawerKey = keyof typeof drawers;
  * Шифр задан вручную, чтобы совпадал с буквой на главной.
  */
 export const pages = {
-  death: { code: 'Д-001', path: '/6-oktyabrya-1991/', title: '6 октября 1991' },
-  memory: { code: 'М-001', path: '/pamyat/', title: 'Память' },
-  author: { code: 'С-001', path: '/ot-sostavitelya/', title: 'От составителя' },
-  roll: { code: 'Ф-001', path: '/plyonka/', title: 'Плёнка' },
+  death: { code: 'Д-001', path: url('/6-oktyabrya-1991/'), title: '6 октября 1991' },
+  memory: { code: 'М-001', path: url('/pamyat/'), title: 'Память' },
+  author: { code: 'С-001', path: url('/ot-sostavitelya/'), title: 'От составителя' },
+  roll: { code: 'Ф-001', path: url('/plyonka/'), title: 'Плёнка' },
 } as const;
 
 /** Шифр карточки: П-007. */

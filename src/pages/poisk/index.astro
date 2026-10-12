@@ -23,6 +23,7 @@ import Base from '../../layouts/Base.astro';
   type Sub = { title: string; url: string; excerpt: string };
   type Result = { url: string; excerpt: string; meta: { title?: string; code?: string }; sub_results?: Sub[] };
   type Pagefind = {
+    options: (o: { baseUrl: string }) => Promise<void>;
     debouncedSearch: (q: string) => Promise<{ results: { data: () => Promise<Result> }[] } | null>;
   };
 
@@ -37,8 +38,10 @@ import Base from '../../layouts/Base.astro';
   async function load(): Promise<Pagefind | null> {
     if (pagefind) return pagefind;
     try {
-      const url = '/pagefind/pagefind.js';
-      pagefind = await import(/* @vite-ignore */ url);
+      const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+      pagefind = await import(/* @vite-ignore */ `${base}/pagefind/pagefind.js`);
+      // В индексе адреса от корня папки dist — Pagefind допишет к ним base сайта.
+      await pagefind!.options({ baseUrl: `${base}/` });
     } catch {
       status.textContent = 'Поиск работает в собранной версии сайта (npm run build, затем npm run preview).';
     }

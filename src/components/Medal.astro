@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import SongRow from './SongRow.astro';
+import { drawers } from '../lib/cards';
 
 /**
  * «Две стороны одной медали»: монету переворачивают — и список песен
@@ -56,7 +57,7 @@ const rimPath = 'M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0';
       <ul class="list">
         {lyric.slice(0, SHOWN).map((s) => <li><SongRow song={s} /></li>)}
       </ul>
-      {more(lyric.length) > 0 && <a class="more" href="/pesni/">Все песни ящика →</a>}
+      {more(lyric.length) > 0 && <a class="more" href={`${drawers.songs.path}/`}>Все песни ящика →</a>}
     </div>
     <div class="panel" data-panel="civic" hidden>
       <h3 class="panel__title">Гражданская линия</h3>
@@ -64,7 +65,7 @@ const rimPath = 'M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0';
       <ul class="list">
         {civic.slice(0, SHOWN).map((s) => <li><SongRow song={s} /></li>)}
       </ul>
-      {more(civic.length) > 0 && <a class="more" href="/pesni/">Все песни ящика →</a>}
+      {more(civic.length) > 0 && <a class="more" href={`${drawers.songs.path}/`}>Все песни ящика →</a>}
     </div>
   </div>
 </div>

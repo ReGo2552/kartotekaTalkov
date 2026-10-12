@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import IndexCard from './IndexCard.astro';
 import Photo, { type PhotoData } from './Photo.astro';
+import { url } from '../lib/cards';
 
 /**
  * Страница одной карточки: путь, карточка с полями, текст из слота,
@@ -29,7 +30,7 @@ const filled = fields.filter((f) => f.value);
 <Base title={title} description={description}>
   <div class="wrap page">
     <nav class="crumbs" aria-label="Путь">
-      <a href="/">Картотека</a>
+      <a href={url('/')}>Картотека</a>
       {crumb && <> / <a href={crumb.href}>{crumb.label}</a></>}
     </nav>
 
