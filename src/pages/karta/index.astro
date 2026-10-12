@@ -1,0 +1,324 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import DrawerHead from '../../components/DrawerHead.astro';
+import { pages, resolveRef } from '../../lib/cards';
+
+// Места по номерам — в порядке жизни.
+const mesta = (await getCollection('mesta')).sort((a, b) => a.data.num - b.data.num);
+const places = await Promise.all(
+  mesta.map(async (m) => ({
+    id: m.id,
+    n: m.data.num,
+    ...m.data,
+    see: await Promise.all(m.data.see.map(resolveRef)),
+  })),
+);
+---
+
+<Base title={pages.map.title} description="Карта мест Игоря Талькова: где он родился, учился, пел и где его помнят.">
+  <div class="wrap">
+    <DrawerHead letter={pages.map.code[0]} title={pages.map.title}>
+      <p>
+        Места из карточек картотеки — от Грецовки, где Тальков родился, до «Юбилейного»
+        и Ваганьковского кладбища. Номера идут в порядке жизни, пунктир соединяет их
+        в один путь. Нажмите на место в списке, и карта перелетит к нему.
+      </p>
+    </DrawerHead>
+
+    <div class="atlas">
+      <div class="map" data-map aria-label="Карта мест" role="region"></div>
+
+      <ol class="places">
+        {places.map((p) => (
+          <li class="place" id={`mesto-${p.id}`}>
+            <button class="place__head" type="button" data-place={places.indexOf(p)}>
+              <span class="place__n">{p.n}</span>
+              <span>
+                <span class="place__title">{p.title}</span>
+                <span class="place__where">{p.where} · {p.years}</span>
+              </span>
+            </button>
+            <p class="place__text">{p.text}</p>
+            {p.see.length > 0 && (
+              <p class="place__see">
+                {p.see.map((r) => (
+                  <a href={r.href}><span>{r.code}</span>{r.title}</a>
+                ))}
+              </p>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+
+  <script is:inline type="application/json" id="places-data" set:html={JSON.stringify(places)} />
+</Base>
+
+<style>
+  .atlas {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+
+  .map {
+    position: sticky;
+    top: 16px;
+    height: min(78vh, 680px);
+    background: #111;
+    border: 1px solid var(--line);
+  }
+
+  @media (max-width: 860px) {
+    .atlas {
+      grid-template-columns: 1fr;
+    }
+
+    .map {
+      position: relative;
+      top: 0;
+      height: 56vh;
+    }
+  }
+
+  .places {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+
+  .place {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .place.is-active .place__n {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .place__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .place__n {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 2px solid var(--red);
+    color: var(--red);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.15rem;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .place__title {
+    display: block;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.6rem;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .place__head:hover .place__title {
+    color: var(--red-hover);
+  }
+
+  .place__where {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .place__text {
+    margin: 10px 0 0 44px;
+    color: var(--text-soft);
+    font-size: 0.92rem;
+  }
+
+  .place__see {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin: 8px 0 0 44px;
+    font-size: 0.85rem;
+  }
+
+  .place__see a {
+    text-decoration: none;
+  }
+
+  .place__see a:hover {
+    text-decoration: underline;
+  }
+
+  .place__see span {
+    margin-right: 6px;
+    color: var(--red);
+    font-weight: 600;
+  }
+
+  /* Leaflet: подгоняем под тёмную картотеку */
+  .map :global(.leaflet-container) {
+    background: #111;
+    font-family: var(--body);
+  }
+
+  /* Светлую карту OpenStreetMap переворачиваем в тёмную, в тон картотеке. */
+  .map :global(.map-tiles) {
+    filter: invert(1) hue-rotate(180deg) grayscale(0.85) brightness(0.8) contrast(1.15);
+  }
+
+  .map :global(.pin) {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    background: #0a0a0a;
+    border: 2px solid var(--red);
+    color: var(--red);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.05rem;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.6);
+  }
+
+  .map :global(.pin.is-active) {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .map :global(.leaflet-popup-content-wrapper),
+  .map :global(.leaflet-popup-tip) {
+    background: #141414;
+    color: var(--text);
+    border-radius: 0;
+    box-shadow: 0 6px 24px rgb(0 0 0 / 0.6);
+  }
+
+  .map :global(.leaflet-popup-content) {
+    margin: 12px 16px;
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+
+  .map :global(.leaflet-popup-content b) {
+    display: block;
+    font-family: var(--display);
+    font-size: 1.3rem;
+    text-transform: uppercase;
+  }
+
+  .map :global(.leaflet-popup-content a) {
+    color: var(--text-soft);
+  }
+
+  .map :global(.leaflet-container a.leaflet-popup-close-button) {
+    color: var(--muted);
+  }
+
+  .map :global(.leaflet-control-attribution) {
+    background: rgb(10 10 10 / 0.8);
+    color: var(--muted);
+  }
+
+  .map :global(.leaflet-control-attribution a) {
+    color: var(--text-soft);
+  }
+
+  .map :global(.leaflet-bar a) {
+    background: #141414;
+    color: var(--text);
+    border-color: var(--line);
+  }
+</style>
+
+<script>
+  import L from 'leaflet';
+  import 'leaflet/dist/leaflet.css';
+
+  interface Place {
+    id: string;
+    n: number;
+    title: string;
+    where: string;
+    years: string;
+    lat: number;
+    lon: number;
+  }
+
+  const places: Place[] = JSON.parse(document.getElementById('places-data')?.textContent ?? '[]');
+  const el = document.querySelector<HTMLElement>('[data-map]')!;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const map = L.map(el, { scrollWheelZoom: false, zoomSnap: 0.5 });
+  map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
+  // Тайлы OpenStreetMap; тёмными их делает CSS-фильтр на слое (.map-tiles).
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    className: 'map-tiles',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">участники OpenStreetMap</a>',
+  }).addTo(map);
+
+  const points = places.map((p) => L.latLng(p.lat, p.lon));
+  // Путь жизни: места по порядку, тонким красным пунктиром.
+  L.polyline(points, { color: '#e3261c', weight: 1.5, opacity: 0.55, dashArray: '4 6' }).addTo(map);
+
+  // Текст во всплывашке собирается из узлов: подписи — это данные, а не HTML.
+  const popup = (p: Place) => {
+    const box = document.createElement('div');
+    const b = document.createElement('b');
+    b.textContent = p.title;
+    const a = document.createElement('a');
+    a.href = `#mesto-${p.id}`;
+    a.textContent = `${p.where} · ${p.years}`;
+    box.append(b, a);
+    return box;
+  };
+
+  const items = [...document.querySelectorAll<HTMLElement>('.place')];
+  const markers = places.map((p, i) => {
+    const icon = L.divIcon({ className: '', html: `<span class="pin">${p.n}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+    const m = L.marker(points[i], { icon, title: p.title, alt: p.title }).addTo(map).bindPopup(popup(p));
+    m.on('popupopen', () => select(i));
+    return m;
+  });
+
+  function select(i: number) {
+    items.forEach((li, j) => li.classList.toggle('is-active', i === j));
+    markers.forEach((m, j) => m.getElement()?.firstElementChild?.classList.toggle('is-active', i === j));
+  }
+
+  map.fitBounds(L.latLngBounds(points), { padding: [28, 28] });
+
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-place]')) {
+    btn.addEventListener('click', () => {
+      const i = Number(btn.dataset.place);
+      const zoom = Math.max(map.getZoom(), 11);
+      if (reduce) map.setView(points[i], zoom);
+      else map.flyTo(points[i], zoom, { duration: 1.2 });
+      markers[i].openPopup();
+      // На телефоне карта над списком — подняться к ней.
+      if (el.getBoundingClientRect().bottom < 0) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+    });
+  }
+</script>

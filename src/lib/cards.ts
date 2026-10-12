@@ -28,6 +28,7 @@ export const pages = {
   memory: { code: 'М-001', path: url('/pamyat/'), title: 'Память' },
   author: { code: 'С-001', path: url('/ot-sostavitelya/'), title: 'От составителя' },
   roll: { code: 'Ф-001', path: url('/plyonka/'), title: 'Плёнка' },
+  map: { code: 'Г-001', path: url('/karta/'), title: 'Карта' },
 } as const;
 
 /** Шифр карточки: П-007. */
@@ -48,9 +49,14 @@ export async function getCards<C extends DrawerKey>(collection: C): Promise<Coll
 
 export const getSongs = () => getCards('songs');
 
-/** Разворачивает ссылку «songs/rossiya» в шифр, название и адрес. */
+/** Разворачивает ссылку «songs/rossiya» (или «pages/death») в шифр, название и адрес. */
 export async function resolveRef(ref: string) {
   const [collection, id] = ref.split('/') as [DrawerKey, string];
+  if ((collection as string) === 'pages') {
+    const page = pages[id as keyof typeof pages];
+    if (!page) throw new Error(`Страница «${ref}» не найдена`);
+    return { code: page.code, title: page.title, href: page.path };
+  }
   const entry = await getEntry(collection, id);
   if (!entry) throw new Error(`Карточка «${ref}» не найдена`);
   return {

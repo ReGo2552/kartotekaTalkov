@@ -160,4 +160,23 @@ const kadry = defineCollection({
   }),
 });
 
-export const collections = { bio, songs, albums, films, people, stroki, kadry };
+/** Места на карте: где родился, учился, пел и где его помнят. */
+const mesta = defineCollection({
+  loader: file('./src/content/mesta.yaml'),
+  schema: z.object({
+    /** Номер на карте, в порядке жизни. */
+    num: z.number(),
+    title: z.string(),
+    /** Уточнение под названием: город, адрес. */
+    where: z.string(),
+    /** Когда: «1956–1976», «23 февраля 1991». */
+    years: z.string(),
+    text: z.string(),
+    lat: z.number(),
+    lon: z.number(),
+    /** Карточки, где рассказано о месте: «bio/sud»; страницы без ящика — «pages/death». */
+    see: z.array(z.string()).default([]),
+  }),
+});
+
+export const collections = { bio, songs, albums, films, people, stroki, kadry, mesta };
