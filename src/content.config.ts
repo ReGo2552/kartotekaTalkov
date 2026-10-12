@@ -1,5 +1,5 @@
 import { defineCollection, type ImageFunction } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 /** Источник сведений: название и (если есть) ссылка. */
@@ -64,16 +64,28 @@ const songs = defineCollection({
     ...card(image),
     /** «Две стороны одной медали». */
     line: z.enum(['лирика', 'гражданская']),
-    /** Строкой, потому что дата бывает приблизительной: «1990», «не позднее 1989». */
-    year: z.string(),
+    /** Строкой, потому что дата бывает приблизительной: «1990», «не позднее 1989». Нет — значит, неизвестен. */
+    year: z.string().optional(),
     music: z.string().default('Игорь Тальков'),
     words: z.string().default('Игорь Тальков'),
     /** Первое издание записи в исполнении Талькова. */
     album: z.string().optional(),
     /** Где песня прозвучала и стала известна. */
     known: z.string().optional(),
-    /** Строка из песни. Вписывает составитель сайта вручную. */
-    quote: z.string().optional(),
+    /** Кто ещё пел песню при жизни Талькова. */
+    covers: z.string().optional(),
+  }),
+});
+
+/**
+ * Строки из песен — одним файлом, чтобы вписывать их подряд.
+ * Ключ — имя файла карточки песни: «rossiya» для songs/rossiya.md.
+ */
+const stroki = defineCollection({
+  loader: file('./src/content/stroki.yaml'),
+  schema: z.object({
+    title: z.string(),
+    stroka: z.string().nullish(),
   }),
 });
 
@@ -117,4 +129,4 @@ const people = defineCollection({
   }),
 });
 
-export const collections = { bio, songs, albums, films, people };
+export const collections = { bio, songs, albums, films, people, stroki };

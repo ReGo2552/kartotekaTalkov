@@ -1,0 +1,46 @@
+---
+/** Примечание составителя: оговорка о полноте и точности сведений. */
+interface Props {
+  title?: string;
+}
+
+const { title = 'Примечание' } = Astro.props;
+---
+
+<aside class="note" data-pagefind-ignore>
+  <p class="note__title">{title}</p>
+  <div class="note__body"><slot /></div>
+</aside>
+
+<style>
+  .note {
+    max-width: 880px;
+    margin: 0 0 40px;
+    padding: 16px 20px;
+    background: var(--panel);
+    box-shadow: inset 3px 0 0 var(--muted);
+  }
+
+  .note__title {
+    margin: 0 0 4px;
+    font-family: var(--display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 1.15rem;
+    color: var(--muted);
+  }
+
+  .note__body {
+    font-size: 0.92rem;
+    color: var(--text-soft);
+  }
+
+  .note__body :global(p) {
+    margin: 0 0 8px;
+  }
+
+  .note__body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>

@@ -1,4 +1,5 @@
 ---
+import { getEntry } from 'astro:content';
 import CardPage from '../../components/CardPage.astro';
 import CardText from '../../components/CardText.astro';
 import Tag from '../../components/Tag.astro';
@@ -11,6 +12,8 @@ export async function getStaticPaths() {
 
 const { song } = Astro.props;
 const d = song.data;
+// Строка из песни вписывается в src/content/stroki.yaml.
+const quote = (await getEntry('stroki', song.id))?.data.stroka?.trim();
 
 // К ручным ссылкам добавляются альбомы картотеки, где есть эта песня.
 const refs = [...new Set([...d.see, ...(await albumsWithSong(d.title))])];
@@ -29,6 +32,7 @@ const fields = [
   ...authors,
   { label: 'Первое издание', value: d.album },
   { label: 'Известность', value: d.known },
+  { label: 'Пели также', value: d.covers },
 ];
 
 const query = encodeURIComponent(`Игорь Тальков ${d.title}`);
@@ -41,7 +45,7 @@ const listen = [
 
 <CardPage
   title={d.title}
-  description={`Карточка песни Игоря Талькова «${d.title}»: год, авторы, история.`}
+  description={`Карточка песни Игоря Талькова «${d.title}»${d.year ? ` (${d.year})` : ''}: авторы, первое издание, история.`}
   code={cardCode('songs', d.num)}
   drawer="Ящик «Песни»"
   crumb={{ href: `${drawers.songs.path}/`, label: 'Песни' }}
@@ -54,10 +58,10 @@ const listen = [
     <Tag>{d.status}</Tag>
   </Fragment>
 
-  {d.quote ? (
-    <blockquote class="quote">{d.quote}</blockquote>
+  {quote ? (
+    <blockquote class="quote">{quote}</blockquote>
   ) : (
-    import.meta.env.DEV && <p class="quote quote--empty">Строка из песни ещё не вписана: поле quote в файле карточки</p>
+    import.meta.env.DEV && <p class="quote quote--empty">Строка из песни ещё не вписана: src/content/stroki.yaml, ключ «{song.id}»</p>
   )}
 
   <CardText entry={song} />

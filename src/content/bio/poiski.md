@@ -14,7 +14,7 @@ sources:
   - title: Discogs — Эдуард Хиль, «В любое время года» (1986), песня «Страна детства» на стихи Талькова
     url: https://www.discogs.com/master/1158167
 photo:
-  src: "./lyubov-i-razluka.jpg"
+  src: "../albums/lyubov-i-razluka.jpg"
   alt: "Обложка пластинки Людмилы Сенчиной «Любовь и разлука»"
   caption: "«Любовь и разлука», 1984: Людмила Сенчина и Группа Игоря Талькова"
   credit: "Обложка издания · Discogs"
