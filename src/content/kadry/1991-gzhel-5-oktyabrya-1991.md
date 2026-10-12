@@ -8,5 +8,5 @@ caption: "Гжель, последний концерт. Тальков подп
 credit: "Сайт памяти Игоря Талькова, «Хроника»"
 url: "https://talkov-music.narod.ru/txt/chronicle.html"
 see: "pages/death"
-order: 2
+order: 6
 ---
