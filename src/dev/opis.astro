@@ -1,0 +1,275 @@
+---
+/**
+ * «Опись» — что в картотеке ещё не заполнено. Страница есть только в режиме
+ * разработки (npm run dev → /opis/): её подключает интеграция в astro.config.mjs.
+ */
+import type { CollectionEntry } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import CardRow from '../components/CardRow.astro';
+import { cardCode, cardHref, drawers, findSong, getCards, pages, type DrawerKey } from '../lib/cards';
+import { getCollection } from 'astro:content';
+import { getRoll } from '../lib/roll';
+
+type Card = CollectionEntry<DrawerKey>;
+const keys = Object.keys(drawers) as DrawerKey[];
+const all = Object.fromEntries(await Promise.all(keys.map(async (k) => [k, await getCards(k)]))) as {
+  [K in DrawerKey]: CollectionEntry<K>[];
+};
+
+/** Строка описи: шифр, название и файл, который нужно поправить. */
+const row = (key: DrawerKey, c: Card, why?: string) => ({
+  href: cardHref(key, c.id),
+  code: cardCode(key, c.data.num),
+  title: c.data.title,
+  note: [why, `src/content/${key}/${c.id}.md`].filter(Boolean).join(' · '),
+});
+
+const stroki = await getCollection('stroki');
+const hasStroka = new Set(stroki.filter((s) => s.data.stroka?.trim()).map((s) => s.id));
+
+// Ящики с фото на карточке: у песен и периодов биографии фото необязательно.
+const withPhoto: DrawerKey[] = ['albums', 'films', 'people'];
+
+const missingTracks = (
+  await Promise.all(
+    all.albums.map(async (a) => {
+      const lost = [];
+      for (const t of a.data.tracks) if (!(await findSong(t))) lost.push(t);
+      return lost.length ? { ...row('albums', a), note: `нет карточек: ${lost.join(', ')}` } : null;
+    }),
+  )
+).filter((x) => x !== null);
+
+const roll = await getRoll();
+const dark = roll.filter((f) => !f.shots.length);
+const unknownShots = roll.flatMap((f) => f.shots).filter((s) => s.credit === 'Источник не установлен');
+
+const sections = [
+  {
+    title: 'Песни без года',
+    hint: 'Поле year в карточке песни.',
+    rows: all.songs.filter((s) => !s.data.year).map((s) => row('songs', s)),
+  },
+  {
+    title: 'Песни без строки',
+    hint: 'src/content/stroki.yaml, ключ — имя файла карточки.',
+    rows: all.songs.filter((s) => !hasStroka.has(s.id)).map((s) => ({ ...row('songs', s), note: `stroki.yaml → ${s.id}` })),
+  },
+  {
+    title: 'Карточки «заполняется»',
+    hint: 'Текст карточки ещё не написан.',
+    rows: keys.flatMap((k) => all[k].filter((c) => c.data.status === 'заполняется').map((c) => row(k, c))),
+  },
+  {
+    title: 'Карточки «требует сверки»',
+    hint: 'Часть сведений подтверждена одним источником.',
+    rows: keys.flatMap((k) => all[k].filter((c) => c.data.status === 'требует сверки').map((c) => row(k, c))),
+  },
+  {
+    title: 'Карточки без фото',
+    hint: 'Файл рядом с карточкой и поле photo — см. src/photos/README.md.',
+    rows: withPhoto.flatMap((k) => all[k].filter((c) => !c.data.photo).map((c) => row(k, c))),
+  },
+  {
+    title: 'Фото без источника',
+    hint: 'credit: «Источник не установлен» — впишите автора, лицензию и url.',
+    rows: [
+      ...keys.flatMap((k) =>
+        all[k].filter((c) => c.data.photo?.credit === 'Источник не установлен').map((c) => row(k, c)),
+      ),
+      ...unknownShots.map((s) => ({
+        href: `${pages.roll.path}#kadr-${s.frame}`,
+        code: `Кадр ${s.frame}`,
+        title: s.caption,
+        note: `src/content/kadry/${s.id}.md`,
+      })),
+    ],
+  },
+  {
+    title: 'Треки альбомов без карточки песни',
+    hint: 'Название трека не совпало ни с одной карточкой ящика «П».',
+    rows: missingTracks,
+  },
+];
+
+const stats = keys.map((k) => {
+  const cards = all[k] as Card[];
+  const count = (s: string) => cards.filter((c) => c.data.status === s).length;
+  return { ...drawers[k], total: cards.length, ok: count('проверено'), check: count('требует сверки'), todo: count('заполняется') };
+});
+---
+
+<Base title="Опись">
+  <div class="wrap opis">
+    <p class="eyebrow">Только в режиме разработки</p>
+    <h1>Опись</h1>
+    <p class="lead">Что в картотеке ещё не заполнено. Список собирается из карточек сам — поправьте файл, и строка исчезнет.</p>
+
+    <section class="stats" aria-label="Ящики">
+      {stats.map((s) => (
+        <div class="stat">
+          <p class="stat__name"><b>{s.letter}</b>{s.name}</p>
+          <div class="bar" role="img" aria-label={`Проверено ${s.ok} из ${s.total}`}>
+            <span class="bar__ok" style={`flex-grow: ${s.ok}`}></span>
+            <span class="bar__check" style={`flex-grow: ${s.check}`}></span>
+            <span class="bar__todo" style={`flex-grow: ${s.todo}`}></span>
+          </div>
+          <p class="stat__nums">{s.ok} проверено · {s.check} сверить · {s.todo} заполнить</p>
+        </div>
+      ))}
+      <div class="stat">
+        <p class="stat__name"><b>Ф</b>Плёнка</p>
+        <div class="bar" role="img" aria-label={`Проявлено ${roll.length - dark.length} из ${roll.length}`}>
+          <span class="bar__ok" style={`flex-grow: ${roll.length - dark.length}`}></span>
+          <span class="bar__todo" style={`flex-grow: ${dark.length}`}></span>
+        </div>
+        <p class="stat__nums">{roll.length - dark.length} кадров проявлено · {dark.length} тёмных</p>
+      </div>
+    </section>
+
+    {sections.map((s) => (
+      <details class="section" open={s.rows.length > 0 && s.rows.length <= 12}>
+        <summary><span>{s.title}</span> <span class="count">{s.rows.length}</span></summary>
+        <p class="hint">{s.hint}</p>
+        {s.rows.length ? (
+          <ul class="card-list">
+            {s.rows.map((r) => <li><CardRow {...r} /></li>)}
+          </ul>
+        ) : (
+          <p class="hint">Всё заполнено.</p>
+        )}
+      </details>
+    ))}
+
+    <details class="section">
+      <summary><span>Тёмные кадры плёнки</span> <span class="count">{dark.length}</span></summary>
+      <p class="hint">Годы без снимка. Снимок добавляется файлом в src/content/kadry.</p>
+      <p class="years">{dark.map((f) => <span>{f.year}</span>)}</p>
+    </details>
+  </div>
+</Base>
+
+<style>
+  .opis {
+    padding-block: 48px 80px;
+  }
+
+  .eyebrow {
+    margin: 0 0 8px;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(3rem, 8vw, 5rem);
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+
+  .lead {
+    max-width: 60ch;
+    margin: 16px 0 36px;
+    color: var(--text-soft);
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .stat {
+    padding: 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+  }
+
+  .stat__name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+
+  .stat__name b {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    background: var(--red);
+    color: #fff;
+    font-family: var(--display);
+  }
+
+  .bar {
+    display: flex;
+    height: 8px;
+    gap: 2px;
+    background: var(--line);
+  }
+
+  .bar span {
+    flex-basis: 0;
+  }
+
+  .bar__ok {
+    background: var(--text);
+  }
+
+  .bar__check {
+    background: var(--red);
+  }
+
+  .bar__todo {
+    background: #3a3a3a;
+  }
+
+  .stat__nums {
+    margin: 10px 0 0;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .section {
+    border-top: 1px solid var(--line);
+    padding-block: 16px;
+  }
+
+  .section summary {
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+  }
+
+  .count {
+    color: var(--red);
+  }
+
+  .hint {
+    margin: 6px 0 12px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .years {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .years span {
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    font-size: 0.85rem;
+  }
+</style>
