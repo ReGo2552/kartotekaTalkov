@@ -1,0 +1,83 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { cardCode, cardHref } from '../lib/cards';
+
+/** Строка песни в списке: шифр, название, год. */
+interface Props {
+  song: CollectionEntry<'songs'>;
+  showLine?: boolean;
+}
+
+const { song, showLine = false } = Astro.props;
+const d = song.data;
+---
+
+<a class="row" href={cardHref('songs', song.id)}>
+  <span class="row__code">{cardCode('songs', d.num)}</span>
+  <span class="row__title">
+    {d.title}
+    {showLine && <span class:list={['row__line', { 'row__line--civic': d.line === 'гражданская' }]}>{d.line}</span>}
+  </span>
+  <span class="row__year">{d.year}</span>
+</a>
+
+<style>
+  .row {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr auto;
+    gap: 12px;
+    align-items: baseline;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+    text-decoration: none;
+  }
+
+  .row:hover .row__title {
+    color: var(--red);
+  }
+
+  .row__code {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--red);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .row__title {
+    font-size: 1.2rem;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
+  .row__line {
+    margin-left: 10px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--line-lyric);
+    vertical-align: 2px;
+  }
+
+  .row__line--civic {
+    color: var(--line-civic);
+  }
+
+  .row__year {
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  @media (max-width: 560px) {
+    .row {
+      grid-template-columns: 3.8rem 1fr;
+    }
+
+    .row__year {
+      grid-column: 2;
+      text-align: left;
+      margin-top: -8px;
+    }
+  }
+</style>

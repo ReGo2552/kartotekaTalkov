@@ -1,0 +1,66 @@
+---
+/** Карточка картотеки: шифр, ящик, ярлыки, крупное название. */
+interface Props {
+  code: string;
+  drawer: string;
+  title: string;
+}
+
+const { code, drawer, title } = Astro.props;
+---
+
+<article class="card" data-pagefind-body>
+  <p class="card__meta">
+    <span class="card__code">{code}</span>
+    <span>{drawer}</span>
+    <span class="card__tags"><slot name="tags" /></span>
+  </p>
+  <h1 class="card__title">{title}</h1>
+  <slot />
+</article>
+
+<style>
+  .card {
+    background: var(--panel);
+    border-top: 4px solid var(--red);
+    padding: clamp(20px, 4vw, 48px);
+  }
+
+  .card__meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+
+  .card__code {
+    color: var(--red);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .card__tags {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .card__title {
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(2.6rem, 7vw, 4.5rem);
+    line-height: 0.9;
+    margin: 0 0 28px;
+  }
+
+  @media (max-width: 560px) {
+    .card__tags {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+</style>

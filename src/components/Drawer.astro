@@ -1,0 +1,67 @@
+---
+/** Ящик картотеки: буква-шифр, название раздела, сколько в нём карточек. */
+interface Props {
+  href?: string;
+  title: string;
+  letter: string;
+  note: string;
+}
+
+const { href, title, letter, note } = Astro.props;
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag class:list={['drawer', { 'drawer--closed': !href }]} href={href}>
+  <span class="drawer__letter">{letter}</span>
+  <span class="drawer__title">{title}</span>
+  <span class="drawer__note">{note}</span>
+</Tag>
+
+<style>
+  .drawer {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 6px;
+    min-height: 168px;
+    padding: 18px 20px 16px;
+    background: var(--panel);
+    border-top: 3px solid var(--line);
+    text-decoration: none;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  a.drawer:hover,
+  a.drawer:focus-visible {
+    background: var(--panel-hover);
+    border-top-color: var(--red);
+  }
+
+  .drawer__letter {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 2.6rem;
+    line-height: 0.9;
+    color: var(--red);
+  }
+
+  .drawer__title {
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 1.7rem;
+    line-height: 0.95;
+    align-self: end;
+  }
+
+  .drawer__note {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .drawer--closed .drawer__letter,
+  .drawer--closed .drawer__title {
+    color: #4a4a4a;
+  }
+</style>

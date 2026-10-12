@@ -1,0 +1,178 @@
+---
+import '../styles/global.css';
+import { allCardHrefs } from '../lib/cards';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = 'Фан-картотека о жизни и песнях Игоря Талькова (1956–1991): биография, песни, альбомы, люди, память.' } = Astro.props;
+const fullTitle = title ? `${title} — Картотека Талькова` : 'Картотека Игоря Талькова';
+const cards = await allCardHrefs();
+const path = Astro.url.pathname;
+
+const nav = [
+  { href: '/biografiya/', label: 'Биография' },
+  { href: '/pesni/', label: 'Песни' },
+  { href: '/albomy/', label: 'Альбомы' },
+  { href: '/kino/', label: 'Кино' },
+  { href: '/lyudi/', label: 'Люди' },
+  { href: '/pamyat/', label: 'Память' },
+];
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap top__in">
+        <a href="/" class="logo"><b aria-hidden="true"></b>Картотека Талькова</a>
+        <nav class="top__nav" aria-label="Разделы">
+          {nav.map((item) => (
+            <a href={item.href} aria-current={path.startsWith(item.href) ? 'page' : undefined}>{item.label}</a>
+          ))}
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="foot">
+      <div class="wrap foot__in">
+        <p>
+          Любительская картотека, собранная поклонником. Не является официальным сайтом.
+          Права на песни, записи и фотографии принадлежат их правообладателям.
+        </p>
+        <button class="foot__random" type="button" data-random>Случайная карточка</button>
+      </div>
+    </footer>
+
+    <script is:inline type="application/json" id="card-index" set:html={JSON.stringify(cards)} />
+    <script>
+      const hrefs: string[] = JSON.parse(document.getElementById('card-index')?.textContent ?? '[]');
+      for (const btn of document.querySelectorAll<HTMLElement>('[data-random]')) {
+        btn.addEventListener('click', () => {
+          const others = hrefs.filter((h) => h !== location.pathname);
+          const pool = others.length ? others : hrefs;
+          if (pool.length) location.href = pool[Math.floor(Math.random() * pool.length)];
+        });
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  .top {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .top__in {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem 1.5rem;
+    min-height: 72px;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+
+  .logo b {
+    width: 22px;
+    height: 6px;
+    background: var(--red);
+  }
+
+  .top__nav {
+    display: flex;
+    gap: 1.4rem;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+
+  .top__nav a {
+    text-decoration: none;
+    padding-block: 4px;
+    border-bottom: 2px solid transparent;
+  }
+
+  .top__nav a:hover {
+    color: var(--text);
+  }
+
+  .top__nav a[aria-current='page'] {
+    color: var(--text);
+    border-bottom-color: var(--red);
+  }
+
+  .foot {
+    margin-top: 120px;
+    border-top: 1px solid var(--line);
+    padding-block: 32px 48px;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .foot__in {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .foot p {
+    margin: 0;
+    max-width: 62ch;
+  }
+
+  .foot__random {
+    font: inherit;
+    color: var(--text);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--red);
+    text-underline-offset: 4px;
+    flex-shrink: 0;
+  }
+
+  .foot__random:hover {
+    color: var(--red);
+  }
+
+  @media (max-width: 820px) {
+    .top__in {
+      padding-block: 14px;
+    }
+
+    .top__nav {
+      width: 100%;
+      overflow-x: auto;
+      gap: 1.1rem;
+      scrollbar-width: none;
+    }
+
+    .foot__in {
+      flex-direction: column;
+    }
+  }
+</style>

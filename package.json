@@ -1,0 +1,16 @@
+{
+  "name": "kartoteka-talkov",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && pagefind --site dist",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@fontsource/alumni-sans": "^5.3.0",
+    "@fontsource/golos-text": "^5.3.0",
+    "astro": "^7.3.8",
+    "pagefind": "^1.5.2"
+  }
+}

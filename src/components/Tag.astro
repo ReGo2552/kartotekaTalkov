@@ -1,0 +1,30 @@
+---
+/** Ярлык в рамке: линия песни, статус проверки. */
+interface Props {
+  tone?: 'red' | 'muted';
+}
+
+const { tone = 'muted' } = Astro.props;
+---
+
+<span class:list={['tag', `tag--${tone}`]}><slot /></span>
+
+<style>
+  .tag {
+    --c: var(--muted);
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--c);
+    border: 1px solid var(--c);
+    padding: 2px 8px;
+    white-space: nowrap;
+  }
+
+  .tag--red {
+    --c: var(--red);
+  }
+</style>

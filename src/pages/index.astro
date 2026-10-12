@@ -1,0 +1,195 @@
+---
+import Base from '../layouts/Base.astro';
+import Drawer from '../components/Drawer.astro';
+import Medal from '../components/Medal.astro';
+import { getSongs } from '../lib/cards';
+
+const songs = await getSongs();
+const lyric = songs.filter((s) => s.data.line === 'лирика');
+const civic = songs.filter((s) => s.data.line === 'гражданская');
+
+function cardsWord(n: number) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return 'карточка';
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'карточки';
+  return 'карточек';
+}
+
+// Ящики без href ещё не заполнены.
+const drawers = [
+  { letter: 'Б', title: 'Биография', note: 'скоро' },
+  { letter: 'П', title: 'Песни', href: '/pesni/', note: `${songs.length} ${cardsWord(songs.length)}` },
+  { letter: 'А', title: 'Альбомы', note: 'скоро' },
+  { letter: 'К', title: 'Кино', note: 'скоро' },
+  { letter: 'Л', title: 'Люди', note: 'скоро' },
+  { letter: 'Д', title: '6 октября 1991', note: 'скоро' },
+  { letter: 'М', title: 'Память', note: 'скоро' },
+  { letter: 'С', title: 'От составителя', note: 'скоро' },
+];
+---
+
+<Base>
+  <section class="hero">
+    <div class="hero__photo">
+      <img
+        src="/img/talkov-1991.jpg"
+        alt="Игорь Тальков на сцене, январь 1991 года: чёрный пиджак, красная повязка на голове"
+        width="1280"
+        height="1871"
+      />
+    </div>
+    <div class="hero__text">
+      <h1>Игорь<br />Тальков</h1>
+      <p class="dates"><span>1956</span><i aria-hidden="true"></i><span>1991</span></p>
+      <p class="lead">
+        Поэт, композитор, певец. Начинал как автор лирических песен, а на рубеже
+        1990-х стал одним из самых резких голосов своего времени. Он пел о России,
+        о революции и Гражданской войне, о вере и о любви. Погиб в 34 года
+        за кулисами концерта в Санкт-Петербурге.
+      </p>
+      <div class="actions">
+        <a class="btn" href="/pesni/">Открыть песни</a>
+        <button class="btn btn--ghost" type="button" data-random>Случайная карточка</button>
+      </div>
+      <p class="credit">
+        Фото: Лев Медведев, январь 1991{' · '}<a href="https://commons.wikimedia.org/wiki/File:ITalkov.jpg">Wikimedia Commons</a>{', '}<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.ru">CC BY-SA 4.0</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="sides-h">
+    <h2 id="sides-h" class="h2">Две стороны</h2>
+    <p class="intro">
+      В одном человеке уживались нежность и бескомпромиссная правда.
+      Поэтому каждая песня в картотеке отнесена к одной из двух линий.
+      Переверните медаль.
+    </p>
+    <Medal lyric={lyric} civic={civic} />
+  </section>
+
+  <section class="wrap" aria-labelledby="drawers-h">
+    <h2 id="drawers-h" class="h2">Ящики картотеки</h2>
+    <div class="drawers">
+      {drawers.map((d) => <Drawer {...d} />)}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: min(88vh, 860px);
+  }
+
+  .hero__photo {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero__photo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 25%;
+  }
+
+  /* Фото уходит в чёрный зал справа */
+  .hero__photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 55%, var(--bg));
+  }
+
+  .hero__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 56px clamp(16px, 5vw, 72px) 56px clamp(16px, 3vw, 40px);
+  }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(4.5rem, 10vw, 9rem);
+    line-height: 0.82;
+    letter-spacing: 0.01em;
+    margin: 0 0 24px;
+  }
+
+  .dates {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 2rem;
+    margin: 0 0 24px;
+  }
+
+  .dates i {
+    flex: 0 0 64px;
+    height: 3px;
+    background: var(--red);
+  }
+
+  .lead {
+    color: var(--text-soft);
+    max-width: 46ch;
+    margin: 0 0 28px;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .credit {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 32px 0 0;
+  }
+
+  .intro {
+    color: var(--text-soft);
+    max-width: 56ch;
+    margin: -12px 0 36px;
+  }
+
+  .drawers {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  @media (max-width: 900px) {
+    .drawers {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 820px) {
+    .hero {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+
+    .hero__photo {
+      aspect-ratio: 4 / 5;
+    }
+
+    .hero__photo::after {
+      background: linear-gradient(180deg, transparent 60%, var(--bg));
+    }
+
+    .hero__text {
+      padding-top: 8px;
+    }
+  }
+</style>
