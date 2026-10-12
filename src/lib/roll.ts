@@ -1,6 +1,6 @@
 import { getImage } from 'astro:assets';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { cardHref, getCards, resolveRef } from './cards';
+import { cardCode, cardHref, getCards, resolveRef, type DrawerKey } from './cards';
 
 /** Тальков прожил 36 лет — ровно столько кадров на фотоплёнке. */
 export const FIRST = 1956;
@@ -20,6 +20,15 @@ export interface Shot extends Kadr {
   card?: { code: string; title: string; href: string };
 }
 
+/** Запись в журнале плёнки: песня, пластинка, фильм или начало периода биографии. */
+export interface Event {
+  code: string;
+  title: string;
+  href: string;
+  /** «не позднее» — год известен только как крайний. */
+  note?: string;
+}
+
 export interface Frame {
   n: number;
   year: number;
@@ -28,6 +37,7 @@ export interface Frame {
   /** Период биографии, в который попадает год. */
   period?: { title: string; href: string };
   shots: Shot[];
+  events: Event[];
 }
 
 function years(n: number): string {
@@ -44,6 +54,18 @@ function age(year: number): string {
   return years(year === LAST ? year - FIRST - 1 : year - FIRST);
 }
 
+/**
+ * Год из строки карточки: «1989», «1990 (предположительно)» — точный год,
+ * «не позднее 1987» — крайний год с пометкой. «Конец 1980-х» на плёнку не ставится.
+ */
+function yearOf(text?: string): { year: number; note?: string } | undefined {
+  if (!text) return;
+  const exact = text.match(/^(\d{4})(?!-)/);
+  if (exact) return { year: Number(exact[1]) };
+  const latest = text.match(/^не позднее (\d{4})$/);
+  if (latest) return { year: Number(latest[1]), note: 'не позднее' };
+}
+
 /** «1956–1974» или «1991» → [начало, конец]. */
 function span(text: string): [number, number] {
   const [a, b = a] = text.split(/[–-]/).map(Number);
@@ -51,7 +73,13 @@ function span(text: string): [number, number] {
 }
 
 export async function getRoll(): Promise<Frame[]> {
-  const [kadry, bio] = await Promise.all([getCollection('kadry'), getCards('bio')]);
+  const [kadry, bio, songs, albums, films] = await Promise.all([
+    getCollection('kadry'),
+    getCards('bio'),
+    getCards('songs'),
+    getCards('albums'),
+    getCards('films'),
+  ]);
   kadry.sort((a, b) => a.data.year - b.data.year || a.data.order - b.data.order || a.id.localeCompare(b.id));
 
   let index = 0;
@@ -69,6 +97,23 @@ export async function getRoll(): Promise<Frame[]> {
     }),
   );
 
+  // Журнал: что из картотеки приходится на каждый год. Периоды — по году начала.
+  const event = (key: DrawerKey, c: { id: string; data: { num: number; title: string } }, note?: string): Event => ({
+    code: cardCode(key, c.data.num),
+    title: c.data.title,
+    href: cardHref(key, c.id),
+    note,
+  });
+  const byYear = new Map<number, Event[]>();
+  const put = (year: number | undefined, e: Event) => year && byYear.set(year, [...(byYear.get(year) ?? []), e]);
+  for (const b of bio) put(span(b.data.years)[0], { ...event('bio', b), note: 'начало периода' });
+  for (const a of albums) put(yearOf(a.data.year)?.year, event('albums', a));
+  for (const f of films) put(yearOf(f.data.year)?.year, event('films', f));
+  for (const s of songs) {
+    const y = yearOf(s.data.year);
+    put(y?.year, event('songs', s, y?.note));
+  }
+
   return Array.from({ length: LAST - FIRST + 1 }, (_, i) => {
     const year = FIRST + i;
     const p = bio.find((b) => {
@@ -81,6 +126,7 @@ export async function getRoll(): Promise<Frame[]> {
       age: age(year),
       period: p && { title: p.data.title, href: cardHref('bio', p.id) },
       shots: shots.filter((s) => s.year === year),
+      events: byYear.get(year) ?? [],
     };
   });
 }

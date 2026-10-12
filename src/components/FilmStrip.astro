@@ -17,6 +17,18 @@ interface Props {
 const { frames, mode = 'lab' } = Astro.props;
 
 const label = (f: Frame) => `${f.year} · ${f.age}`;
+
+// Тёмный кадр ведёт в журнал плёнки, если в этом году что-то было, иначе — в период биографии.
+const darkHref = (f: Frame) =>
+  f.events.length ? `${mode === 'lab' ? '' : pages.roll.path}#god-${f.year}` : f.period?.href;
+
+function entries(n: number) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return `${n} запись`;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return `${n} записи`;
+  return `${n} записей`;
+}
 ---
 
 <ol class="strip" data-reveal>
@@ -41,10 +53,15 @@ const label = (f: Frame) => `${f.year} · ${f.age}`;
                 </svg>
               )}
             </a>
-          ) : f.period ? (
-            <a class="frame__shot" href={f.period.href} aria-label={`Кадр ${f.n}, ${f.year}: снимка нет. Период «${f.period.title}» в биографии`}>
+          ) : darkHref(f) ? (
+            <a
+              class="frame__shot"
+              href={darkHref(f)}
+              aria-label={`Кадр ${f.n}, ${f.year}: снимка нет. ${f.events.length ? `В журнале ${entries(f.events.length)}` : `Период «${f.period?.title}» в биографии`}`}
+            >
               <span class="frame__year" aria-hidden="true">{f.year}</span>
-              <span class="frame__period" aria-hidden="true">{f.period.title}</span>
+              <span class="frame__period" aria-hidden="true">{f.events.length ? entries(f.events.length) : f.period?.title}</span>
+              {f.events.length > 0 && <span class="frame__dot" aria-hidden="true"></span>}
             </a>
           ) : (
             <span class="frame__shot">
@@ -152,6 +169,18 @@ const label = (f: Frame) => `${f.year} · ${f.age}`;
   .frame--dark a.frame__shot:hover .frame__period,
   .frame--dark a.frame__shot:focus-visible .frame__period {
     color: var(--text-soft);
+  }
+
+  /* Красная точка: в журнале этого года есть записи */
+  .frame__dot {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    opacity: 0.8;
   }
 
   .frame__more {

@@ -13,6 +13,9 @@ const exposed = roll.filter((f) => f.shots.length).length;
 // Контрольный лист: плёнка разрезана на полосы по шесть кадров.
 const strips = Array.from({ length: roll.length / 6 }, (_, i) => roll.slice(i * 6, i * 6 + 6));
 
+// Журнал плёнки: годы, где есть снимок или запись из других ящиков.
+const log = roll.filter((f) => f.shots.length || f.events.length);
+
 // Всё, что нужно окну проявки, — без самих файлов.
 const lab = shots.map((s) => ({
   full: s.full,
@@ -26,6 +29,7 @@ const lab = shots.map((s) => ({
   credit: s.credit,
   url: s.url,
   card: s.card,
+  log: roll[s.frame - 1].events.length ? `#god-${s.year}` : undefined,
 }));
 ---
 
@@ -55,6 +59,40 @@ const lab = shots.map((s) => ({
     <div class="sheet">
       {strips.map((s) => <FilmStrip frames={s} />)}
     </div>
+
+    <section class="log" aria-labelledby="log-h">
+      <h2 id="log-h" class="h2">Журнал плёнки</h2>
+      <p class="log__intro">
+        Фотограф записывает в журнал, что на каком кадре. Здесь записано, что приходится
+        на каждый год из других ящиков картотеки. Если год песни известен только
+        как крайний, стоит пометка «не позднее».
+      </p>
+      <ol class="log__list">
+        {log.map((f) => (
+          <li class="log__row" id={`god-${f.year}`}>
+            <p class="log__when">
+              <a href={`#kadr-${f.n}`}>Кадр {f.n}</a>
+              <b>{f.year}</b>
+              <span>{f.age}</span>
+            </p>
+            <div class="log__body">
+              {f.period && <p class="log__period">Период: <a href={f.period.href}>{f.period.title}</a></p>}
+              <ul class="log__events">
+                {f.shots.map((s) => (
+                  <li><span class="log__code">Ф</span><a href={s.full} data-shot={s.index}>{s.caption}</a></li>
+                ))}
+                {f.events.map((e) => (
+                  <li>
+                    <span class="log__code">{e.code}</span><a href={e.href}>{e.title}</a>
+                    {e.note && <span class="log__note">{e.note}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
   </div>
 
   <dialog class="lab" aria-labelledby="lab-title" data-lab>
@@ -76,6 +114,7 @@ const lab = shots.map((s) => ({
             <p class="back__caption" data-lab-caption></p>
             <p class="back__credit" data-lab-credit></p>
             <p class="back__card" data-lab-card></p>
+            <p class="back__card" data-lab-log></p>
           </div>
         </div>
       </div>
@@ -94,7 +133,120 @@ const lab = shots.map((s) => ({
   .sheet {
     display: grid;
     gap: 26px;
-    margin-bottom: 72px;
+    margin-bottom: 88px;
+  }
+
+  /* ── Журнал плёнки ── */
+  .log {
+    margin-bottom: 88px;
+  }
+
+  .log__intro {
+    max-width: 60ch;
+    margin: -8px 0 28px;
+    color: var(--text-soft);
+  }
+
+  .log__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+
+  .log__row {
+    display: grid;
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: 24px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+    scroll-margin-top: 24px;
+  }
+
+  .log__row:target {
+    background: linear-gradient(90deg, rgb(227 38 28 / 0.12), transparent 60%);
+  }
+
+  @media (max-width: 640px) {
+    .log__row {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+  }
+
+  .log__when {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    align-content: flex-start;
+    column-gap: 10px;
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .log__when b {
+    order: -1;
+    width: 100%;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 2.2rem;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  @media (max-width: 640px) {
+    .log__when b {
+      width: auto;
+    }
+  }
+
+  .log__when a {
+    color: var(--edge, #c9a25a);
+    text-decoration: none;
+  }
+
+  .log__period {
+    margin: 0 0 8px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .log__events {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 4px;
+  }
+
+  .log__events li {
+    display: grid;
+    grid-template-columns: 4.6em minmax(0, 1fr);
+  }
+
+  .log__events li > a {
+    justify-self: start;
+  }
+
+  .log__events a {
+    text-decoration: none;
+  }
+
+  .log__events a:hover {
+    text-decoration: underline;
+  }
+
+  .log__code {
+    color: var(--red);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .log__note {
+    grid-column: 2;
+    font-size: 0.78rem;
+    color: var(--muted);
   }
 
   /* ── Окно проявки ──
@@ -325,6 +477,7 @@ const lab = shots.map((s) => ({
     credit: string;
     url?: string;
     card?: { code: string; title: string; href: string };
+    log?: string;
   }
 
   const slides: Slide[] = JSON.parse(document.getElementById('lab-data')?.textContent ?? '[]');
@@ -374,6 +527,7 @@ const lab = shots.map((s) => ({
     $('caption').textContent = `${s.kind[0].toUpperCase()}${s.kind.slice(1)}. ${s.caption}`;
     $('credit').replaceChildren('Источник: ', link(s.credit, s.url));
     $('card').replaceChildren(...(s.card ? ['Карточка: ', link(`${s.card.code} «${s.card.title}»`, s.card.href)] : []));
+    $('log').replaceChildren(...(s.log ? [link(`Журнал плёнки: ${s.log.slice('#god-'.length)} год →`, s.log)] : []));
 
     steps[0].disabled = i === 0;
     steps[1].disabled = i === slides.length - 1;
@@ -402,6 +556,11 @@ const lab = shots.map((s) => ({
     if (!dialog.open) return;
     if (e.key === 'ArrowLeft' && current > 0) show(current - 1);
     if (e.key === 'ArrowRight' && current < slides.length - 1) show(current + 1);
+  });
+
+  // Ссылка с оборота в журнал этой же страницы: сначала закрыть окно, потом перейти.
+  $('log').addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a')) dialog.close();
   });
 
   // Щелчок по красному полю вокруг снимка закрывает окно.
