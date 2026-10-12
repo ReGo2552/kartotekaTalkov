@@ -12,6 +12,9 @@ interface Props {
 }
 
 const { lyric, civic } = Astro.props;
+// На медали — первые песни ящика (они идут по шифрам), остальные в «Песнях».
+const SHOWN = 12;
+const more = (n: number) => n - SHOWN;
 const rim = 'ИГОРЬ ТАЛЬКОВ · 1956 — 1991 · ИГОРЬ ТАЛЬКОВ · 1956 — 1991 ·';
 // Окружность радиуса 78, начинается слева и идёт по часовой стрелке.
 const rimPath = 'M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0';
@@ -51,15 +54,17 @@ const rimPath = 'M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0';
       <h3 class="panel__title">Лирика</h3>
       <p class="panel__note">Песни о любви, памяти и тишине · {lyric.length}</p>
       <ul class="list">
-        {lyric.map((s) => <li><SongRow song={s} /></li>)}
+        {lyric.slice(0, SHOWN).map((s) => <li><SongRow song={s} /></li>)}
       </ul>
+      {more(lyric.length) > 0 && <a class="more" href="/pesni/">Все песни ящика →</a>}
     </div>
     <div class="panel" data-panel="civic" hidden>
       <h3 class="panel__title">Гражданская линия</h3>
       <p class="panel__note">Песни о России, истории и правде · {civic.length}</p>
       <ul class="list">
-        {civic.map((s) => <li><SongRow song={s} /></li>)}
+        {civic.slice(0, SHOWN).map((s) => <li><SongRow song={s} /></li>)}
       </ul>
+      {more(civic.length) > 0 && <a class="more" href="/pesni/">Все песни ящика →</a>}
     </div>
   </div>
 </div>
@@ -277,6 +282,18 @@ const rimPath = 'M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0';
     margin: 0;
     padding: 0;
     border-bottom: 1px solid var(--line);
+  }
+
+  .more {
+    display: inline-block;
+    margin-top: 16px;
+    font-size: 0.9rem;
+    color: var(--side);
+    text-decoration: none;
+  }
+
+  .more:hover {
+    text-decoration: underline;
   }
 
   @media (max-width: 820px) {

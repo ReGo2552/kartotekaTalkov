@@ -9,6 +9,14 @@ const songs = (await getSongs()).sort((a, b) => a.data.title.localeCompare(b.dat
 const lyric = songs.filter((s) => s.data.line === 'лирика').length;
 const civic = songs.length - lyric;
 
+function songsWord(n: number) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return 'песня';
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'песни';
+  return 'песен';
+}
+
 // Песни по первой букве названия, как в ящике картотеки.
 const letter = (title: string) => title.replace(/^[^\p{L}\d]+/u, '')[0].toUpperCase().replace('Ё', 'Е');
 const groups = Object.entries(Object.groupBy(songs, (s) => letter(s.data.title)));
@@ -31,7 +39,7 @@ const filters = [
 
     <Note>
       <p>
-        Здесь {songs.length} песен, и это не полный список. Многие песни Тальков пел только
+        Здесь {songs.length} {songsWord(songs.length)}, и это не полный список. Многие песни Тальков пел только
         на концертах, часть дошла до нас лишь в любительских записях. Годы и первые издания
         в разных источниках не совпадают, а линия песни — оценка составителя. Если
         в карточке нет года, он не установлен.

@@ -1,40 +1,209 @@
 # Строки из песен для карточек ящика «П».
-# Впишите строку в кавычках после «stroka:». Пусто — карточка без цитаты.
+# Песни идут по алфавиту. Впишите строку в кавычках после «stroka:».
+# Пустые кавычки — карточка без цитаты. Ключ слева — имя файла карточки, его не менять.
+
+love-you:
+  title: "Love You"
+  stroka: ""
+
+a-teper-my-s-toboy-pritikhli:
+  title: "А теперь мы с тобой притихли"
+  stroka: ""
+
+bal-satany:
+  title: "Бал Сатаны"
+  stroka: ""
+
+ballada-ob-afgantse:
+  title: "Баллада об афганце"
+  stroka: ""
 
 byvshiy-podesaul:
   title: "Бывший подъесаул"
   stroka: ""
 
-chistye-prudy:
-  title: "Чистые пруды"
+v-okeane-neponimaniya:
+  title: "В океане непонимания"
+  stroka: ""
+
+vek-mamay:
+  title: "Век Мамай"
+  stroka: ""
+
+voyna:
+  title: "Война"
+  stroka: ""
+
+vsemu-svoyo-vremya:
+  title: "Всему своё время"
+  stroka: ""
+
+garmoniya:
+  title: "Гармония"
+  stroka: ""
+
+globus:
+  title: "Глобус"
   stroka: ""
 
 gospoda-demokraty:
   title: "Господа демократы"
   stroka: ""
 
+gospodin-prezident:
+  title: "Господин президент"
+  stroka: ""
+
+den-vospominaniy:
+  title: "День воспоминаний"
+  stroka: ""
+
+den-rozhdeniya:
+  title: "День рождения"
+  stroka: ""
+
+druzya-tovarishchi:
+  title: "Друзья-товарищи"
+  stroka: ""
+
+dyadin-kolpak:
+  title: "Дядин колпак"
+  stroka: ""
+
+zaiskivanie:
+  title: "Заискивание"
+  stroka: ""
+
+zamknutyy-krug:
+  title: "Замкнутый круг"
+  stroka: ""
+
+zvezda:
+  title: "Звезда"
+  stroka: ""
+
+kogda-zasypaet-gorod:
+  title: "Когда засыпает город"
+  stroka: ""
+
 kpss:
   title: "КПСС"
+  stroka: ""
+
+kremlyovskaya-stena:
+  title: "Кремлёвская стена"
   stroka: ""
 
 letniy-dozhd:
   title: "Летний дождь"
   stroka: ""
 
+lyudi-s-zabintovannymi-lbami:
+  title: "Люди с забинтованными лбами"
+  stroka: ""
+
+malenkaya-planeta:
+  title: "Маленькая планета"
+  stroka: ""
+
+malenkiy-gorod:
+  title: "Маленький город"
+  stroka: ""
+
+metamorfoza:
+  title: "Метаморфоза"
+  stroka: ""
+
+mechta:
+  title: "Мечта"
+  stroka: ""
+
+mister-x:
+  title: "Мистер X"
+  stroka: ""
+
+mne-nemnogo-zhal:
+  title: "Мне немного жаль"
+  stroka: ""
+
+moy-brat:
+  title: "Мой брат"
+  stroka: ""
+
 moya-lyubov:
   title: "Моя любовь"
   stroka: ""
 
-pamyat:
-  title: "Память"
+nasha-zhizn:
+  title: "Наша жизнь"
+  stroka: ""
+
+nervy-nervy-nervy:
+  title: "Нервы, нервы, нервы"
+  stroka: ""
+
+novaya-doroga:
+  title: "Новая дорога"
+  stroka: ""
+
+nostalgiya:
+  title: "Ностальгия"
+  stroka: ""
+
+okean-neponimaniya:
+  title: "Океан непонимания"
+  stroka: ""
+
+otkuda-ty-prishyol:
+  title: "Откуда ты пришёл"
   stroka: ""
 
 pamyati-viktora-tsoya:
   title: "Памяти Виктора Цоя"
   stroka: ""
 
+pamyat:
+  title: "Память"
+  stroka: ""
+
+pozdno:
+  title: "Поздно"
+  stroka: ""
+
+poluglasnost:
+  title: "Полугласность"
+  stroka: ""
+
+pochemu-my-stali-chuzhimi:
+  title: "Почему мы стали чужими"
+  stroka: ""
+
+pravo-vsem-dano:
+  title: "Право всем дано"
+  stroka: ""
+
+prazdnik:
+  title: "Праздник"
+  stroka: ""
+
+prizvanie:
+  title: "Призвание"
+  stroka: ""
+
 primernyy-malchik:
   title: "Примерный мальчик"
+  stroka: ""
+
+proshchalnyy-den:
+  title: "Прощальный день"
+  stroka: ""
+
+razgovory-ni-o-chyom:
+  title: "Разговоры ни о чём"
+  stroka: ""
+
+revolyutsionnaya-lambada:
+  title: "Революционная ламбада"
   stroka: ""
 
 rodina-moya:
@@ -45,6 +214,34 @@ rossiya:
   title: "Россия"
   stroka: ""
 
+ryzhiy:
+  title: "Рыжий"
+  stroka: ""
+
+sakvoyazh:
+  title: "Саквояж"
+  stroka: ""
+
+samyy-luchshiy-den:
+  title: "Самый лучший день"
+  stroka: ""
+
+samyy-yagodnyy-sezon:
+  title: "Самый ягодный сезон"
+  stroka: ""
+
+sobranie-v-zheke:
+  title: "Собрание в ЖЭКе"
+  stroka: ""
+
+sovki:
+  title: "Совки"
+  stroka: ""
+
+solntse-ukhodit-na-zapad:
+  title: "Солнце уходит на запад"
+  stroka: ""
+
 spasatelnyy-krug:
   title: "Спасательный круг"
   stroka: ""
@@ -53,8 +250,76 @@ stop-dumayu-sebe:
   title: "Стоп! Думаю себе"
   stroka: ""
 
+strana-detstva:
+  title: "Страна детства"
+  stroka: ""
+
+strannitsa-v-nochi:
+  title: "Странница в ночи"
+  stroka: ""
+
+studencheskaya-pesnya:
+  title: "Студенческая песня"
+  stroka: ""
+
+stsena:
+  title: "Сцена"
+  stroka: ""
+
+tanya:
+  title: "Таня"
+  stroka: ""
+
+tyomnaya-loshadka:
+  title: "Тёмная лошадка"
+  stroka: ""
+
+tovarishch-lenin:
+  title: "Товарищ Ленин, а как у вас дела в аду?.."
+  stroka: ""
+
+tri-doma:
+  title: "Три дома"
+  stroka: ""
+
+tri-pisma:
+  title: "Три письма"
+  stroka: ""
+
+ty-opozdala:
+  title: "Ты опоздала"
+  stroka: ""
+
 u-tvoego-okna:
   title: "У твоего окна"
+  stroka: ""
+
+uedu:
+  title: "Уеду"
+  stroka: ""
+
+fatalnaya-kolesnitsa:
+  title: "Фатальная колесница"
+  stroka: ""
+
+chas-do-rassveta:
+  title: "Час до рассвета"
+  stroka: ""
+
+chistye-prudy:
+  title: "Чистые пруды"
+  stroka: ""
+
+chudak:
+  title: "Чудак"
+  stroka: ""
+
+etot-mir:
+  title: "Этот мир"
+  stroka: ""
+
+etot-put:
+  title: "Этот путь"
   stroka: ""
 
 ya-vernus:
