@@ -18,6 +18,12 @@ sources:
   - title: Discogs — Валерий Леонтьев, «Грешный путь» (1990), песни Талькова «Память» и «Друзья-товарищи»
     url: https://www.discogs.com/master/301322
   - title: И. Тальков. «Монолог» (1992)
+photo:
+  src: "../albums/chistye-prudy.jpg"
+  alt: "Обложка миньона «Чистые пруды»"
+  caption: "Миньон «Чистые пруды», «Мелодия», 1989"
+  credit: "Обложка издания · Discogs"
+  url: "https://www.discogs.com/release/1903709"
 ---
 
 ## Две части концерта

@@ -33,6 +33,46 @@ const footLinks = [pages.death, pages.author];
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="expect" href="#page-end" blocking="render" />
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        // Блоки прячутся до проявления, только если работает JS. Если скрипт
+        // проявления так и не запустился, через 3 секунды всё показывается.
+        root.classList.add('reveal-on');
+        setTimeout(function () {
+          if (!window.__reveal) root.classList.remove('reveal-on');
+        }, 3000);
+
+        // Переход между страницами: шифр строки перелетает в шифр карточки
+        // и обратно. Имя перехода ставится только паре элементов.
+        var NAME = 'card-code';
+        var path = function (url) { return new URL(url, location.href).pathname; };
+        var rowCode = function (p) { return document.querySelector('a[href="' + p + '"] [data-vt-code]'); };
+        var cardCode = function () { return document.querySelector('[data-vt-code="card"]'); };
+        // Страница из кэша истории может вернуться с именем на старой строке.
+        var clear = function () {
+          document.querySelectorAll('[data-vt-code]').forEach(function (el) { el.style.viewTransitionName = ''; });
+        };
+
+        addEventListener('pageswap', function (e) {
+          clear();
+          if (!e.viewTransition || !e.activation || !e.activation.entry) return;
+          var el = rowCode(path(e.activation.entry.url)) || cardCode();
+          if (el) el.style.viewTransitionName = NAME;
+        });
+
+        addEventListener('pagereveal', function (e) {
+          clear();
+          var from = window.navigation && navigation.activation && navigation.activation.from;
+          if (!e.viewTransition || !from) return;
+          var el = cardCode() || rowCode(path(from.url));
+          if (!el) return;
+          el.style.viewTransitionName = NAME;
+          e.viewTransition.finished.finally(function () { el.style.viewTransitionName = ''; });
+        });
+      })();
+    </script>
   </head>
   <body>
     <header class="top">
@@ -49,6 +89,7 @@ const footLinks = [pages.death, pages.author];
     <main>
       <slot />
     </main>
+    <span id="page-end" hidden></span>
 
     <footer class="foot">
       <div class="wrap foot__in">
@@ -65,6 +106,31 @@ const footLinks = [pages.death, pages.author];
 
     <script is:inline type="application/json" id="card-index" set:html={JSON.stringify(cards)} />
     <script>
+      // Проявление блоков при прокрутке. Блоки, дошедшие до экрана вместе,
+      // появляются лесенкой.
+      const show = (els: HTMLElement[]) =>
+        els.forEach((el, i) => {
+          el.style.setProperty('--i', String(Math.min(i, 12)));
+          el.classList.add('is-in');
+        });
+      const io = new IntersectionObserver(
+        (entries) => {
+          const seen = entries.filter((e) => e.isIntersecting).map((e) => e.target as HTMLElement);
+          seen.forEach((el) => io.unobserve(el));
+          show(seen);
+        },
+        { rootMargin: '0px 0px -6% 0px' },
+      );
+      // То, что видно сразу, проявляется без ожидания наблюдателя.
+      const items = [...document.querySelectorAll<HTMLElement>('[data-reveal]')];
+      const inView = (el: HTMLElement) => {
+        const r = el.getBoundingClientRect();
+        return r.bottom > 0 && r.top < innerHeight && r.width > 0;
+      };
+      show(items.filter(inView));
+      items.filter((el) => !el.classList.contains('is-in')).forEach((el) => io.observe(el));
+      (window as Window & { __reveal?: boolean }).__reveal = true;
+
       const hrefs: string[] = JSON.parse(document.getElementById('card-index')?.textContent ?? '[]');
       for (const btn of document.querySelectorAll<HTMLElement>('[data-random]')) {
         btn.addEventListener('click', () => {
@@ -80,6 +146,7 @@ const footLinks = [pages.death, pages.author];
 <style>
   .top {
     border-bottom: 1px solid var(--line);
+    view-transition-name: top;
   }
 
   .top__in {

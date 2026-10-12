@@ -26,6 +26,8 @@ const films = await getCards('films');
             title={f.data.title}
             note={f.data.role}
             aside={f.data.year}
+            thumb={f.data.photo?.src}
+            thumbs
           />
         </li>
       ))}

@@ -1,7 +1,10 @@
 ---
 import CardPage from '../../components/CardPage.astro';
+import Photo from '../../components/Photo.astro';
 import Tag from '../../components/Tag.astro';
 import { pages, resolveRef } from '../../lib/cards';
+import grave from '../../photos/mogila.jpg';
+import stamp from '../../photos/marka-1999.jpg';
 
 const page = pages.memory;
 const see = await Promise.all(['songs/ya-vernus', 'people/talkova-olga', 'people/talkov-vladimir'].map(resolveRef));
@@ -31,6 +34,17 @@ const sources = [
 
   <div class="prose">
     <h2>Могила</h2>
+    <Photo
+      photo={{
+        src: grave,
+        alt: 'Могила Игоря Талькова зимой: высокий каменный крест и надгробие под снегом',
+        caption: 'Ваганьковское кладбище. Снимок 2012 года',
+        credit: 'Glavkom_NN · CC BY 3.0',
+        url: 'https://ru.wikipedia.org/wiki/Файл:Ваганьковское_кладбище_могила_Талькова.jpg',
+      }}
+      sizes="(max-width: 700px) 60vw, 260px"
+      class="aside-photo"
+    />
     <p>
       Игорь Тальков похоронен в Москве на Ваганьковском кладбище. Памятник на
       могиле сделал скульптор Вячеслав Клыков, его установили в 1993 году.
@@ -60,6 +74,16 @@ const sources = [
     </p>
 
     <h2>Марка</h2>
+    <Photo
+      photo={{
+        src: stamp,
+        alt: 'Почтовая марка России 1999 года с портретом Игоря Талькова, номинал 2 рубля',
+        credit: 'Wikimedia Commons · общественное достояние',
+        url: 'https://commons.wikimedia.org/wiki/File:Russia_stamp_I.Talkov_1999_2r.jpg',
+      }}
+      sizes="(max-width: 700px) 70vw, 300px"
+      class="aside-photo aside-photo--wide"
+    />
     <p>В 1999 году вышла почтовая марка России с портретом Игоря Талькова, номиналом 2 рубля.</p>
 
     <h2>Книги</h2>
@@ -85,3 +109,29 @@ const sources = [
     </p>
   </div>
 </CardPage>
+
+<style>
+  /* Фото сбоку от текста раздела */
+  :global(.aside-photo) {
+    float: right;
+    width: 240px;
+    margin: 6px 0 16px 28px;
+  }
+
+  :global(.aside-photo--wide) {
+    width: 300px;
+  }
+
+  .prose :global(h2) {
+    clear: both;
+  }
+
+  @media (max-width: 700px) {
+    :global(.aside-photo),
+    :global(.aside-photo--wide) {
+      float: none;
+      width: min(100%, 300px);
+      margin: 12px 0 16px;
+    }
+  }
+</style>

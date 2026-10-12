@@ -19,6 +19,12 @@ sources:
     url: https://www.discogs.com/release/4357737
   - title: Discogs — «Последний концерт» (T. Talkova, 1996)
     url: https://www.discogs.com/release/1369022
+photo:
+  src: "../albums/luzhniki-1991.jpg"
+  alt: "Игорь Тальков и музыканты «Спасательного круга» в военной форме"
+  caption: "Концерт в Лужниках 23 февраля 1991 года: обложка пластинки 1992 года"
+  credit: "Обложка издания · Discogs"
+  url: "https://www.discogs.com/release/4357737"
 ---
 
 ## Концерт в Лужниках

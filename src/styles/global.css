@@ -200,6 +200,77 @@ h3 {
   white-space: nowrap;
 }
 
+/* ── Движение ──
+   Блоки с data-reveal проявляются, когда доходят до экрана (скрипт в Base.astro
+   ставит им класс is-in). Фото (data-reveal="light") загораются, как сцена
+   под софитом. Класс reveal-on на <html> ставится, только если работает JS. */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-on [data-reveal]:not([data-reveal='light']):not(.is-in) {
+    opacity: 0;
+  }
+
+  .reveal-on [data-reveal]:not([data-reveal='light']).is-in {
+    animation: reveal 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i, 0) * 45ms) both;
+  }
+
+  .reveal-on [data-reveal='light']:not(.is-in) img {
+    filter: brightness(0);
+  }
+
+  .reveal-on [data-reveal='light'].is-in img {
+    animation: light-up 1.3s cubic-bezier(0.3, 0.5, 0.2, 1) both;
+  }
+
+  /* Переходы между страницами: шапка стоит на месте, страница сменяется,
+     шифр строки перелетает в шифр карточки. */
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-old(root) {
+    animation: page-out 0.16s ease both;
+  }
+
+  ::view-transition-new(root) {
+    animation: page-in 0.3s ease 0.06s both;
+  }
+
+  ::view-transition-group(card-code) {
+    animation-duration: 0.5s;
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+}
+
+@keyframes light-up {
+  from {
+    filter: brightness(0) contrast(1.4);
+    scale: 1.06;
+  }
+
+  45% {
+    filter: brightness(0.7) contrast(1.15);
+  }
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

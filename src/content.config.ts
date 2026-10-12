@@ -1,4 +1,4 @@
-import { defineCollection } from 'astro:content';
+import { defineCollection, type ImageFunction } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
@@ -15,8 +15,27 @@ const source = z.object({
  */
 const status = z.enum(['проверено', 'требует сверки', 'заполняется']).default('заполняется');
 
+/**
+ * Фото карточки. Файл кладётся рядом с карточкой, путь пишется от неё:
+ * «./rossiya.jpg». Без поля photo на карточке остаётся пустое место под фото.
+ */
+const photo = (image: ImageFunction) =>
+  z
+    .object({
+      src: image(),
+      /** Что видно на снимке — для тех, кто не видит картинку. */
+      alt: z.string(),
+      /** Подпись под фото. */
+      caption: z.string().optional(),
+      /** Автор, год и лицензия: «Лев Медведев, 1990 · CC BY-SA 4.0». */
+      credit: z.string(),
+      /** Страница, откуда взято фото. */
+      url: z.string().optional(),
+    })
+    .optional();
+
 /** Поля, общие для карточек всех ящиков. */
-const card = {
+const card = (image: ImageFunction) => ({
   /** Порядковый номер в ящике → шифр «П-001». */
   num: z.number(),
   title: z.string(),
@@ -24,15 +43,16 @@ const card = {
   /** Ссылки на другие карточки: «songs/rossiya», «albums/rossiya». */
   see: z.array(z.string()).default([]),
   sources: z.array(source).default([]),
-};
+  photo: photo(image),
+});
 
 const from = (dir: string) => glob({ pattern: '**/*.md', base: `./src/content/${dir}` });
 
 /** Биография: периоды жизни, выводятся одной страницей. */
 const bio = defineCollection({
   loader: from('bio'),
-  schema: z.object({
-    ...card,
+  schema: ({ image }) => z.object({
+    ...card(image),
     /** «1956–1974» */
     years: z.string(),
   }),
@@ -40,8 +60,8 @@ const bio = defineCollection({
 
 const songs = defineCollection({
   loader: from('songs'),
-  schema: z.object({
-    ...card,
+  schema: ({ image }) => z.object({
+    ...card(image),
     /** «Две стороны одной медали». */
     line: z.enum(['лирика', 'гражданская']),
     /** Строкой, потому что дата бывает приблизительной: «1990», «не позднее 1989». */
@@ -59,8 +79,8 @@ const songs = defineCollection({
 
 const albums = defineCollection({
   loader: from('albums'),
-  schema: z.object({
-    ...card,
+  schema: ({ image }) => z.object({
+    ...card(image),
     year: z.string(),
     artist: z.string().default('Игорь Тальков'),
     format: z.string(),
@@ -76,8 +96,8 @@ const albums = defineCollection({
 
 const films = defineCollection({
   loader: from('films'),
-  schema: z.object({
-    ...card,
+  schema: ({ image }) => z.object({
+    ...card(image),
     year: z.string(),
     kind: z.enum(['художественный', 'документальный']),
     director: z.string(),
@@ -88,8 +108,8 @@ const films = defineCollection({
 
 const people = defineCollection({
   loader: from('people'),
-  schema: z.object({
-    ...card,
+  schema: ({ image }) => z.object({
+    ...card(image),
     /** Кем человек приходится Талькову. */
     role: z.string(),
     /** Годы жизни: «1924–2007», «род. 1953». */

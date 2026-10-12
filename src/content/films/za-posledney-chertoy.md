@@ -17,6 +17,11 @@ sources:
     url: https://www.wikidata.org/wiki/Q4182257
   - title: Википедия — «Тальков, Игорь Владимирович»
     url: https://ru.wikipedia.org/wiki/Тальков,_Игорь_Владимирович
+photo:
+  src: "./za-posledney-chertoy.jpg"
+  alt: "Постер фильма «За последней чертой»"
+  credit: "Постер фильма · Википедия"
+  url: "https://ru.wikipedia.org/wiki/Файл:Постер_фильма_«За_последней_чертой»_(СССР,_1991).jpg"
 ---
 
 ## Фильм

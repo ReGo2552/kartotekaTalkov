@@ -1,7 +1,9 @@
 ---
 import CardPage from '../../components/CardPage.astro';
+import Photo from '../../components/Photo.astro';
 import Tag from '../../components/Tag.astro';
 import { pages, resolveRef } from '../../lib/cards';
+import yubileynyy from '../../photos/yubileynyy.jpg';
 
 const page = pages.death;
 const see = await Promise.all(['bio/sud', 'people/talkova-olga', 'people/talkova-tatyana'].map(resolveRef));
@@ -35,6 +37,19 @@ const sources = [
   <Fragment slot="tags">
     <Tag>проверено</Tag>
   </Fragment>
+
+  <Photo
+    photo={{
+      src: yubileynyy,
+      alt: 'Дворец спорта «Юбилейный» в Санкт-Петербурге: длинное здание со стеклянным фасадом',
+      caption: 'Дворец спорта «Юбилейный», Санкт-Петербург',
+      credit: 'Heibert · CC BY-SA 3.0',
+      url: 'https://commons.wikimedia.org/wiki/File:Yubileyny_St_Petersburg.jpg',
+    }}
+    sizes="(max-width: 700px) 92vw, 640px"
+    mono
+    class="lead-photo"
+  />
 
   <div class="prose">
     <h2>Что произошло</h2>
@@ -89,3 +104,10 @@ const sources = [
     </p>
   </div>
 </CardPage>
+
+<style>
+  :global(.lead-photo) {
+    max-width: 64ch;
+    margin-bottom: 36px;
+  }
+</style>

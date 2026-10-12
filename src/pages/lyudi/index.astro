@@ -21,6 +21,8 @@ const people = await getCards('people');
             title={p.data.title}
             note={p.data.role}
             aside={p.data.life}
+            thumb={p.data.photo?.src}
+            thumbs
           />
         </li>
       ))}

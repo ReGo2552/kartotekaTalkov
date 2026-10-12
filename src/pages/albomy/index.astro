@@ -27,6 +27,8 @@ const albums = await getCards('albums');
             title={a.data.title}
             note={`${a.data.format} · ${a.data.label}`}
             aside={a.data.year}
+            thumb={a.data.photo?.src}
+            thumbs
           />
         </li>
       ))}

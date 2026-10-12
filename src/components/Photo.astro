@@ -1,0 +1,157 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+
+/** Поля фото, как в карточке (см. content.config.ts). */
+export interface PhotoData {
+  src: ImageMetadata;
+  alt: string;
+  caption?: string;
+  credit: string;
+  url?: string;
+}
+
+/**
+ * Фото с подписью и автором. Без фото остаётся пустое место под снимок,
+ * чтобы было видно, куда его потом положить.
+ */
+interface Props {
+  photo?: PhotoData;
+  /** Форма пустого места: обложка — квадрат, портрет и постер — вертикаль. */
+  shape?: 'square' | 'portrait' | 'wide';
+  /** Шифр карточки на пустом месте. */
+  code?: string;
+  /** Ширина фото на странице — по ней браузер выбирает размер файла. */
+  sizes?: string;
+  /** Чёрно-белое. */
+  mono?: boolean;
+  class?: string;
+}
+
+const { photo, shape = 'portrait', code, sizes = '(max-width: 700px) 92vw, 300px', mono = false, class: cls } = Astro.props;
+
+const ratio = { square: '1', portrait: '4 / 5', wide: '16 / 9' }[shape];
+const widths = photo
+  ? [...[240, 360, 480, 720, 960, 1280].filter((w) => w < photo.src.width), photo.src.width]
+  : [];
+---
+
+<figure class:list={['photo', cls, { 'photo--mono': mono, 'photo--empty': !photo }]} data-reveal="light" data-pagefind-ignore>
+  {photo ? (
+    <>
+      <div class="photo__frame">
+        <Picture src={photo.src} alt={photo.alt} widths={widths} sizes={sizes} formats={['avif', 'webp']} />
+      </div>
+      <figcaption>
+        {photo.caption && <span class="photo__caption">{photo.caption}</span>}
+        <span class="photo__credit">
+          {photo.url ? <a href={photo.url} target="_blank" rel="noopener">{photo.credit}</a> : photo.credit}
+        </span>
+      </figcaption>
+    </>
+  ) : (
+    <div class="photo__frame photo__slot" style={`aspect-ratio: ${ratio}`}>
+      {code && <span class="photo__code">{code}</span>}
+      <span class="photo__word" aria-hidden="true">Фото</span>
+      <span class="photo__note">Снимка пока нет</span>
+      {import.meta.env.DEV && <span class="photo__dev">Положите файл рядом с карточкой и заполните поле photo</span>}
+    </div>
+  )}
+</figure>
+
+<style>
+  .photo {
+    margin: 0;
+  }
+
+  .photo__frame {
+    position: relative;
+    overflow: hidden;
+    background: #050505;
+  }
+
+  .photo__frame :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* На рамке, а не на снимке: фильтр снимка занят анимацией света */
+  .photo--mono .photo__frame {
+    filter: grayscale(1) contrast(1.05);
+  }
+
+  figcaption {
+    display: grid;
+    gap: 2px;
+    margin-top: 8px;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: var(--muted);
+  }
+
+  .photo__caption {
+    color: var(--text-soft);
+  }
+
+  .photo__credit a {
+    text-decoration-color: #444;
+  }
+
+  .photo__credit a:hover {
+    color: var(--text);
+  }
+
+  /* Пустое место: уголки, как у наклеенного снимка */
+  .photo__slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 16px;
+    text-align: center;
+    background:
+      linear-gradient(var(--line), var(--line)) top left / 18px 2px,
+      linear-gradient(var(--line), var(--line)) top left / 2px 18px,
+      linear-gradient(var(--line), var(--line)) top right / 18px 2px,
+      linear-gradient(var(--line), var(--line)) top right / 2px 18px,
+      linear-gradient(var(--line), var(--line)) bottom left / 18px 2px,
+      linear-gradient(var(--line), var(--line)) bottom left / 2px 18px,
+      linear-gradient(var(--line), var(--line)) bottom right / 18px 2px,
+      linear-gradient(var(--line), var(--line)) bottom right / 2px 18px,
+      #0f0f0f;
+    background-repeat: no-repeat;
+  }
+
+  .photo__code {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--red);
+  }
+
+  .photo__word {
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 3.2rem;
+    line-height: 0.9;
+    color: #262626;
+  }
+
+  .photo__note {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .photo__dev {
+    max-width: 22ch;
+    margin-top: 8px;
+    font-size: 0.7rem;
+    line-height: 1.35;
+    color: #6a6a6a;
+  }
+</style>

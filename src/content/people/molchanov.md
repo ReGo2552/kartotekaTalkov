@@ -13,6 +13,12 @@ sources:
   - title: Медуза — «Умер Владимир Молчанов», 13 мая 2026
     url: https://meduza.io/news/2026/05/13/umer-vladimir-molchanov-avtor-programmy-do-i-posle-polunochi
   - title: И. Тальков. «Монолог» (1992)
+photo:
+  src: "./molchanov.jpg"
+  alt: "Владимир Молчанов в студии"
+  caption: "1991"
+  credit: "Лев Медведев · CC BY-SA 4.0"
+  url: "https://commons.wikimedia.org/wiki/File:Vladimir_Molchanov.jpg"
 ---
 
 Автор и ведущий программы «До и после полуночи». В декабре 1989 года показал в эфире клип на песню Талькова «Россия», снятый его командой.

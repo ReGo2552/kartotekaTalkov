@@ -11,7 +11,7 @@ const { code, drawer, title } = Astro.props;
 
 <article class="card" data-pagefind-body>
   <p class="card__meta" data-pagefind-ignore>
-    <span class="card__code" data-pagefind-meta="code">{code}</span>
+    <span class="card__code" data-pagefind-meta="code" data-vt-code="card">{code}</span>
     <span>{drawer}</span>
     <span class="card__tags"><slot name="tags" /></span>
   </p>
@@ -21,9 +21,21 @@ const { code, drawer, title } = Astro.props;
 
 <style>
   .card {
+    position: relative;
+    /* Штамп в начале анимации крупнее себя и не должен растягивать страницу */
+    overflow-x: clip;
     background: var(--panel);
-    border-top: 4px solid var(--red);
-    padding: clamp(20px, 4vw, 48px);
+    padding: clamp(24px, 4vw, 52px) clamp(20px, 4vw, 48px) clamp(20px, 4vw, 48px);
+  }
+
+  /* Красная кромка карточки */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    background: var(--red);
+    transform-origin: left;
   }
 
   .card__meta {
@@ -55,6 +67,52 @@ const { code, drawer, title } = Astro.props;
     font-size: clamp(2.6rem, 7vw, 4.5rem);
     line-height: 0.9;
     margin: 0 0 28px;
+  }
+
+  /* Карточку достают из ящика: она поднимается, кромка прочерчивается,
+     на неё ставят штамп статуса. */
+  @media (prefers-reduced-motion: no-preference) {
+    .card {
+      animation: card-pull 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+
+    .card::before {
+      animation: edge 0.6s cubic-bezier(0.6, 0, 0.2, 1) 0.15s both;
+    }
+
+    .card__tags > :global(*) {
+      animation: stamp 0.42s cubic-bezier(0.3, 1.5, 0.5, 1) 0.55s both;
+    }
+
+    .card__tags > :global(* + *) {
+      animation-delay: 0.7s;
+    }
+  }
+
+  @keyframes card-pull {
+    from {
+      opacity: 0;
+      translate: 0 56px;
+    }
+  }
+
+  @keyframes edge {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  @keyframes stamp {
+    from {
+      opacity: 0;
+      scale: 1.9;
+      rotate: -8deg;
+    }
+
+    60% {
+      opacity: 1;
+      scale: 0.94;
+    }
   }
 
   @media (max-width: 560px) {

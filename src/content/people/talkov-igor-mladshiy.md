@@ -11,6 +11,12 @@ sources:
     url: https://ru.wikipedia.org/wiki/Тальков,_Игорь_Игоревич
   - title: Discogs — «Надо жить!» (2005)
     url: https://www.discogs.com/master/1096786
+photo:
+  src: "./talkov-igor-mladshiy.jpg"
+  alt: "Игорь Тальков-младший поёт у микрофона"
+  caption: "Москва, 2017"
+  credit: "Mark Nakoykher · CC BY-SA 4.0"
+  url: "https://commons.wikimedia.org/wiki/File:01_Igor'_Talkov-mladshiy_.jpg"
 ---
 
 Игорь Игоревич Тальков родился 14 октября 1981 года в Москве. Когда отец погиб, ему было девять лет.

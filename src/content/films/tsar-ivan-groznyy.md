@@ -13,6 +13,11 @@ sources:
     url: https://www.wikidata.org/wiki/Q4503277
   - title: Википедия — «Тальков, Игорь Владимирович»
     url: https://ru.wikipedia.org/wiki/Тальков,_Игорь_Владимирович
+photo:
+  src: "./tsar-ivan-groznyy.jpg"
+  alt: "Обложка видеоиздания фильма «Царь Иван Грозный»"
+  credit: "Обложка видеоиздания · Википедия"
+  url: "https://ru.wikipedia.org/wiki/Файл:Царь_Иван_Грозный.jpg"
 ---
 
 ## Фильм

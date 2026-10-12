@@ -77,9 +77,24 @@ const rimPath = 'M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0';
       coin.setAttribute('aria-label', `Перевернуть медаль: показать ${civic ? 'лирику' : 'гражданскую линию'}`);
       tabs.forEach((t) => t.setAttribute('aria-pressed', String(t.dataset.to === side)));
       panels.forEach((p) => (p.hidden = p.dataset.panel !== side));
+
+      // Строки открывшегося списка заново появляются лесенкой.
+      const rows = root.querySelectorAll<HTMLElement>(`[data-panel="${side}"] [data-reveal]`);
+      rows.forEach((r, i) => {
+        r.classList.remove('is-in');
+        r.style.setProperty('--i', String(Math.min(i, 12)));
+      });
+      void root.offsetWidth;
+      rows.forEach((r) => r.classList.add('is-in'));
     };
 
-    coin.addEventListener('click', () => show(root.dataset.side === 'civic' ? 'lyric' : 'civic'));
+    // Монету подбрасывают: она взлетает и переворачивается в воздухе.
+    coin.addEventListener('click', () => {
+      coin.classList.remove('is-toss');
+      void coin.offsetWidth;
+      coin.classList.add('is-toss');
+      show(root.dataset.side === 'civic' ? 'lyric' : 'civic');
+    });
     tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.to!)));
   }
 </script>
@@ -133,6 +148,22 @@ const rimPath = 'M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0';
 
   .coin:hover .coin__inner {
     scale: 1.03;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .coin.is-toss {
+      animation: toss 0.7s cubic-bezier(0.3, 0.6, 0.4, 1);
+    }
+  }
+
+  @keyframes toss {
+    40% {
+      translate: 0 -46px;
+    }
+
+    80% {
+      translate: 0 3px;
+    }
   }
 
   .coin__face {

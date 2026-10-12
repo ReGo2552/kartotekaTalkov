@@ -11,7 +11,8 @@ const { href, title, letter, note } = Astro.props;
 const Tag = href ? 'a' : 'div';
 ---
 
-<Tag class:list={['drawer', { 'drawer--closed': !href }]} href={href}>
+<Tag class:list={['drawer', { 'drawer--closed': !href }]} href={href} data-reveal>
+  <span class="drawer__cards" aria-hidden="true"><i></i><i></i><i></i></span>
   <span class="drawer__letter">{letter}</span>
   <span class="drawer__title">{title}</span>
   <span class="drawer__note">{note}</span>
@@ -19,6 +20,7 @@ const Tag = href ? 'a' : 'div';
 
 <style>
   .drawer {
+    position: relative;
     display: grid;
     grid-template-rows: auto 1fr auto;
     gap: 6px;
@@ -36,6 +38,60 @@ const Tag = href ? 'a' : 'div';
   a.drawer:focus-visible {
     background: var(--panel-hover);
     border-top-color: var(--red);
+  }
+
+  /* Карточки внутри ящика: при наведении выглядывают из-за кромки */
+  .drawer__cards {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 100%;
+    height: 20px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .drawer__cards i {
+    position: absolute;
+    bottom: 0;
+    height: 20px;
+    translate: 0 100%;
+    transition: translate 0.28s cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+
+  .drawer__cards i:nth-child(1) {
+    left: 4%;
+    width: 44%;
+    background: var(--text);
+  }
+
+  .drawer__cards i:nth-child(2) {
+    left: 40%;
+    width: 34%;
+    background: #9a9a9a;
+    transition-delay: 0.04s;
+  }
+
+  .drawer__cards i:nth-child(3) {
+    left: 70%;
+    width: 18%;
+    background: #5c5c5c;
+    transition-delay: 0.08s;
+  }
+
+  a.drawer:hover .drawer__cards i,
+  a.drawer:focus-visible .drawer__cards i {
+    translate: 0 30%;
+  }
+
+  a.drawer:hover .drawer__cards i:nth-child(2),
+  a.drawer:focus-visible .drawer__cards i:nth-child(2) {
+    translate: 0 5%;
+  }
+
+  a.drawer:hover .drawer__cards i:nth-child(3),
+  a.drawer:focus-visible .drawer__cards i:nth-child(3) {
+    translate: 0 45%;
   }
 
   .drawer__letter {

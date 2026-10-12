@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import IndexCard from './IndexCard.astro';
+import Photo, { type PhotoData } from './Photo.astro';
 
 /**
  * Страница одной карточки: путь, карточка с полями, текст из слота,
@@ -16,9 +17,12 @@ interface Props {
   fields?: { label: string; value?: string }[];
   see?: { code: string; title: string; href: string }[];
   sources?: { title: string; url?: string }[];
+  photo?: PhotoData;
+  /** Место под фото рядом с полями. Без него фото на карточке нет. */
+  photoShape?: 'square' | 'portrait';
 }
 
-const { title, description, code, drawer, crumb, fields = [], see = [], sources = [] } = Astro.props;
+const { title, description, code, drawer, crumb, fields = [], see = [], sources = [], photo, photoShape } = Astro.props;
 const filled = fields.filter((f) => f.value);
 ---
 
@@ -32,15 +36,20 @@ const filled = fields.filter((f) => f.value);
     <IndexCard code={code} drawer={drawer} title={title}>
       <Fragment slot="tags"><slot name="tags" /></Fragment>
 
-      {filled.length > 0 && (
-        <dl class="fields">
-          {filled.map((f) => (
-            <div>
-              <dt>{f.label}<span class="visually-hidden">: </span></dt>
-              <dd>{f.value}<span class="visually-hidden">. </span></dd>
-            </div>
-          ))}
-        </dl>
+      {(filled.length > 0 || photoShape) && (
+        <div class:list={['head', { 'head--photo': photoShape }]}>
+          {filled.length > 0 && (
+            <dl class="fields">
+              {filled.map((f) => (
+                <div>
+                  <dt>{f.label}<span class="visually-hidden">: </span></dt>
+                  <dd>{f.value}<span class="visually-hidden">. </span></dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {photoShape && <Photo photo={photo} shape={photoShape} code={code} class="head__photo" />}
+        </div>
       )}
 
       <slot />
@@ -50,7 +59,7 @@ const filled = fields.filter((f) => f.value);
           <h2 id="see-h" class="block__h">См. также</h2>
           <ul class="refs">
             {see.map((r) => (
-              <li><a href={r.href}><span class="refs__code">{r.code}</span>{r.title}</a></li>
+              <li><a href={r.href}><span class="refs__code" data-vt-code>{r.code}</span>{r.title}</a></li>
             ))}
           </ul>
         </section>
@@ -90,8 +99,19 @@ const filled = fields.filter((f) => f.value);
     color: var(--text);
   }
 
+  .head {
+    margin-bottom: 32px;
+  }
+
+  .head--photo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 40px;
+    align-items: start;
+  }
+
   .fields {
-    margin: 0 0 32px;
+    margin: 0;
   }
 
   .fields div {
@@ -166,6 +186,18 @@ const filled = fields.filter((f) => f.value);
   .sources a {
     color: var(--text-soft);
     word-break: break-word;
+  }
+
+  @media (max-width: 700px) {
+    .head--photo {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .head :global(.head__photo) {
+      order: -1;
+      max-width: 320px;
+    }
   }
 
   @media (max-width: 560px) {

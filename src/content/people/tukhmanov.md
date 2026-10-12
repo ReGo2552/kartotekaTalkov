@@ -13,6 +13,12 @@ sources:
     url: https://www.discogs.com/release/3933026
   - title: Википедия — «Чистые пруды (песня)»
     url: https://ru.wikipedia.org/wiki/Чистые_пруды_(песня)
+photo:
+  src: "./tukhmanov.jpg"
+  alt: "Давид Тухманов за роялем"
+  caption: "2007"
+  credit: "Ivan Bessedin · CC BY 2.0"
+  url: "https://commons.wikimedia.org/wiki/File:David_Toukhmanov.jpg"
 ---
 
 Советский и российский композитор. В 1986 году собрал проект «Электроклуб» и пригласил в него солистами Ирину Аллегрову и Игоря Талькова.

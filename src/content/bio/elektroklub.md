@@ -17,6 +17,12 @@ sources:
     url: https://ria.ru/20211006/talkov-1753178503.html
   - title: Discogs — Давид Тухманов, «Электроклуб» («Мелодия», 1987)
     url: https://www.discogs.com/release/3933026
+photo:
+  src: "../albums/elektroklub.jpg"
+  alt: "Обложка пластинки «Электроклуб»"
+  caption: "Пластинка «Электроклуб», «Мелодия», 1987"
+  credit: "Обложка издания · Discogs"
+  url: "https://www.discogs.com/release/3933026"
 ---
 
 ## Тухманов
