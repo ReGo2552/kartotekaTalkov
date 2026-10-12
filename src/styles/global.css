@@ -329,6 +329,12 @@ h3 {
     break-inside: avoid-page;
   }
 
+  /* У текста карточки свои светлые цвета для тёмного фона. */
+  .prose,
+  .prose strong {
+    color: #000;
+  }
+
   /* Ссылки на источники печатаются с адресом: с бумаги по ним не нажать. */
   .sources a[href^='http']::after {
     content: ' — ' attr(href);
