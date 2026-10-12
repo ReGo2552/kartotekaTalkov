@@ -1,0 +1,94 @@
+---
+import Base from '../layouts/Base.astro';
+import { drawers, url } from '../lib/cards';
+---
+
+<Base title="Ящик пуст" description="Такой карточки в картотеке нет.">
+  <div class="wrap empty">
+    <p class="empty__code" aria-hidden="true">?-404</p>
+    <h1>Ящик пуст</h1>
+    <p class="empty__text">
+      Такой карточки в картотеке нет. Может быть, её переложили в другой ящик
+      или в адресе опечатка.
+    </p>
+    <div class="empty__actions">
+      <button class="btn" type="button" data-random>Вытянуть случайную карточку</button>
+      <a class="btn btn--ghost" href={url('/poisk/')}>Поиск</a>
+      <a class="btn btn--ghost" href={url('/')}>На главную</a>
+    </div>
+    <nav class="empty__drawers" aria-label="Ящики картотеки">
+      {Object.values(drawers).map((d) => (
+        <a href={`${d.path}/`}><b>{d.letter}</b>{d.name}</a>
+      ))}
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .empty {
+    padding-block: clamp(56px, 10vw, 120px);
+  }
+
+  .empty__code {
+    margin: 0 0 8px;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 0.06em;
+    color: var(--red);
+  }
+
+  .empty h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(3.6rem, 12vw, 8rem);
+    line-height: 0.85;
+  }
+
+  .empty__text {
+    max-width: 46ch;
+    margin: 24px 0 32px;
+    color: var(--text-soft);
+  }
+
+  .empty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 48px;
+  }
+
+  .empty__drawers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .empty__drawers a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px 8px 8px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text-soft);
+    text-decoration: none;
+  }
+
+  .empty__drawers a:hover {
+    border-color: var(--muted);
+    color: var(--text);
+  }
+
+  .empty__drawers b {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    background: var(--red);
+    color: #fff;
+    font-family: var(--display);
+    font-size: 1.1rem;
+  }
+</style>
