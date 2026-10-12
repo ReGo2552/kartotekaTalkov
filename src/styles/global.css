@@ -278,3 +278,66 @@ h3 {
     transition: none !important;
   }
 }
+
+/* ── Печать ──
+   Карточка печатается как каталожная: белая бумага, чёрный текст, красная полоса
+   и шифр. Меню, кнопки, «Слушать» и анимации на бумаге не нужны. */
+@media print {
+  :root {
+    --bg: #fff;
+    --panel: #fff;
+    --line: #bbb;
+    --text: #000;
+    --text-soft: #222;
+    --muted: #555;
+    color-scheme: light;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+
+  body {
+    background: #fff;
+    font-size: 11pt;
+  }
+
+  .top,
+  .foot,
+  .crumbs,
+  .btn,
+  button,
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  .wrap {
+    max-width: none;
+    padding-inline: 0;
+  }
+
+  /* Всё, что ждёт проявления при прокрутке, на бумаге видно сразу. */
+  [data-reveal],
+  [data-reveal] img {
+    opacity: 1 !important;
+    filter: none !important;
+    animation: none !important;
+  }
+
+  .card {
+    border: 1px solid #999;
+    break-inside: avoid-page;
+  }
+
+  /* Ссылки на источники печатаются с адресом: с бумаги по ним не нажать. */
+  .sources a[href^='http']::after {
+    content: ' — ' attr(href);
+    font-size: 0.85em;
+    color: var(--muted);
+    word-break: break-all;
+  }
+
+  a {
+    text-decoration: none;
+  }
+}
