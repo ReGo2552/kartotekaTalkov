@@ -12,10 +12,13 @@
     "@fontsource/alumni-sans": "^5.3.0",
     "@fontsource/golos-text": "^5.3.0",
     "astro": "^7.3.8",
-    "pagefind": "^1.5.2"
+    "pagefind": "^1.5.2",
+    "satori": "^0.33.5",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@types/node": "^22.20.4",
     "typescript": "^5.9.3"
   }
 }
