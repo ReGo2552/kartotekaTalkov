@@ -1,5 +1,6 @@
 ---
 year: 1983
+order: 5
 kind: "обложка"
 src: "../albums/kogda-zasypaet-gorod.jpg"
 alt: "Обложка миньона «Когда засыпает город. Песни Якова Дубравина»"

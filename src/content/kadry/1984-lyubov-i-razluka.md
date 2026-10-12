@@ -1,5 +1,6 @@
 ---
 year: 1984
+order: 5
 kind: "обложка"
 src: "../albums/lyubov-i-razluka.jpg"
 alt: "Обложка пластинки Людмилы Сенчиной «Любовь и разлука»"
