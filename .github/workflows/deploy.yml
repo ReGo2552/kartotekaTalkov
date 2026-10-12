@@ -1,0 +1,45 @@
+# Сборка и выкладка сайта на GitHub Pages после каждого push в main.
+name: Выкладка на GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Кнопка «Run workflow» во вкладке Actions — пересобрать вручную.
+  workflow_dispatch:
+
+# Право публиковать в Pages и подтверждать, что сборка пришла из этого репозитория.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Одна выкладка за раз: новая отменяет ту, что ещё в очереди.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # ci, а не install: ставит ровно то, что записано в package-lock.json.
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
