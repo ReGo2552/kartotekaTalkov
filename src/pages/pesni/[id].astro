@@ -16,7 +16,7 @@ const d = song.data;
 const quote = (await getEntry('stroki', song.id))?.data.stroka?.trim();
 
 // К ручным ссылкам добавляются альбомы картотеки, где есть эта песня.
-const refs = [...new Set([...d.see, ...(await albumsWithSong(d.title))])];
+const refs = [...new Set([...d.see, ...(await albumsWithSong(song))])];
 const see = await Promise.all(refs.map(resolveRef));
 
 const authors =
@@ -28,6 +28,7 @@ const authors =
       ];
 
 const fields = [
+  { label: 'Другие названия', value: d.aka.join(', ') || undefined },
   { label: 'Год', value: d.year },
   ...authors,
   { label: 'Первое издание', value: d.album },

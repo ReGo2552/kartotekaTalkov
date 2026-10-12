@@ -60,17 +60,20 @@ export function titleKey(title: string): string {
     .trim();
 }
 
+/** Все названия песни: основное и другие, под которыми она выходила. */
+const songKeys = (s: CollectionEntry<'songs'>) => [s.data.title, ...s.data.aka].map(titleKey);
+
 /** Карточка песни по названию трека, если она есть в ящике. */
 export async function findSong(title: string) {
   const key = titleKey(title);
-  return (await getSongs()).find((s) => titleKey(s.data.title) === key);
+  return (await getSongs()).find((s) => songKeys(s).includes(key));
 }
 
-/** Альбомы картотеки, где есть эта песня, — в виде ссылок «albums/id». */
-export async function albumsWithSong(title: string): Promise<string[]> {
-  const key = titleKey(title);
+/** Альбомы картотеки, где есть эта песня под любым из её названий, — ссылки «albums/id». */
+export async function albumsWithSong(song: CollectionEntry<'songs'>): Promise<string[]> {
+  const keys = songKeys(song);
   const albums = await getCards('albums');
-  return albums.filter((a) => a.data.tracks.some((t) => titleKey(t) === key)).map((a) => `albums/${a.id}`);
+  return albums.filter((a) => a.data.tracks.some((t) => keys.includes(titleKey(t)))).map((a) => `albums/${a.id}`);
 }
 
 /** Все адреса карточек — для кнопки «вытянуть наугад». */
