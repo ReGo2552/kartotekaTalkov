@@ -3,7 +3,7 @@ import { Image, Picture } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Drawer from '../components/Drawer.astro';
 import Medal from '../components/Medal.astro';
-import { drawers as box, getCards, pages } from '../lib/cards';
+import { drawers as box, getCards, pages, resolveRef } from '../lib/cards';
 import hero from '../photos/talkov-1991.png';
 import autograph from '../photos/avtograf.png';
 
@@ -48,6 +48,9 @@ const drawers = [
   single(pages.memory, 'музей, памятники, книги'),
   single(pages.author, 'зачем эта картотека'),
 ];
+
+// Последняя строка главной — из песни «Я вернусь».
+const coda = await resolveRef('songs/ya-vernus');
 ---
 
 <Base>
@@ -100,6 +103,13 @@ const drawers = [
     <div class="drawers">
       {drawers.map((d) => <Drawer {...d} />)}
     </div>
+  </section>
+
+  <section class="wrap coda" aria-label="Строки из песни «Я вернусь»" data-reveal>
+    <blockquote>
+      <p>Я пророчить не берусь,<br /><span>Но точно знаю, что вернусь…</span></p>
+    </blockquote>
+    <a class="coda__src" href={coda.href}>{coda.code} · «{coda.title}»</a>
   </section>
 </Base>
 
@@ -219,6 +229,50 @@ const drawers = [
     color: var(--text-soft);
     max-width: 56ch;
     margin: -12px 0 36px;
+  }
+
+  /* Последняя строка главной: главная начинается датами 1956–1991, а заканчивается обещанием вернуться. */
+  .coda {
+    padding-top: clamp(72px, 12vw, 150px);
+    padding-bottom: clamp(24px, 5vw, 56px);
+  }
+
+  .coda blockquote {
+    margin: 0 0 20px;
+  }
+
+  .coda blockquote::before {
+    content: '';
+    display: block;
+    width: 64px;
+    height: 3px;
+    margin-bottom: 28px;
+    background: var(--red);
+  }
+
+  .coda p {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(2.6rem, 7vw, 5.6rem);
+    line-height: 0.9;
+    text-wrap: balance;
+  }
+
+  .coda p span {
+    color: var(--red);
+  }
+
+  .coda__src {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+
+  .coda__src:hover {
+    color: var(--text);
+    text-decoration: underline;
   }
 
   /* ── Выход на сцену ──
