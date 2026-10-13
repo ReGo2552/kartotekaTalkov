@@ -2,7 +2,7 @@ import { getImage } from 'astro:assets';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { cardCode, cardHref, getCards, resolveRef, type DrawerKey } from './cards';
 
-/** Тальков прожил 36 лет — ровно столько кадров на фотоплёнке. */
+/** Прожил 34 года, но жизнь заняла 36 календарных лет, 1956–1991, — ровно столько кадров на плёнке. */
 export const FIRST = 1956;
 export const LAST = 1991;
 
