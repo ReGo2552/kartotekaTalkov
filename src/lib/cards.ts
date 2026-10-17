@@ -29,6 +29,7 @@ export const pages = {
   author: { code: 'С-001', path: url('/ot-sostavitelya/'), title: 'От составителя' },
   roll: { code: 'Ф-001', path: url('/plyonka/'), title: 'Плёнка' },
   map: { code: 'Г-001', path: url('/karta/'), title: 'Карта' },
+  quiz: { code: 'В-001', path: url('/viktorina/'), title: 'Викторина' },
 } as const;
 
 /** Шифр карточки: П-007. */

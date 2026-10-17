@@ -1,0 +1,699 @@
+---
+import Base from '../../layouts/Base.astro';
+import DrawerHead from '../../components/DrawerHead.astro';
+import { pages } from '../../lib/cards';
+import { getQuiz } from '../../lib/quiz';
+
+const quiz = await getQuiz();
+---
+
+<Base
+  title={pages.quiz.title}
+  description="Викторина по картотеке Игоря Талькова: строки песен, альбомы, люди, кино, снимки с плёнки. Десять случайных вопросов, ответ на каждый — в карточке."
+>
+  <div class="wrap">
+    <DrawerHead letter={pages.quiz.code[0]} title={pages.quiz.title}>
+      <p>
+        Десять вопросов из ящиков картотеки: строки песен, альбомы, люди, кино, снимки
+        с плёнки и места на карте. Каждый раз вопросы другие, всего их {quiz.questions.length}.
+        Ответ на каждый записан в карточке — ссылка на неё появится, когда ответите.
+      </p>
+    </DrawerHead>
+
+    <section class="quiz" aria-label="Вопросы викторины" data-quiz>
+      <noscript>
+        <p class="quiz__nojs">Викторине нужен JavaScript: вопросы набираются в браузере.</p>
+      </noscript>
+
+      <article class="q" hidden data-q>
+        <p class="q__meta">
+          <span class="q__code">{pages.quiz.code}</span>
+          <span data-q-count></span>
+          <span class="q__score" data-q-score></span>
+        </p>
+        <ol class="q__track" aria-hidden="true" data-q-track></ol>
+
+        <h2 class="q__ask" id="q-ask" tabindex="-1" data-q-ask></h2>
+        <figure class="q__shot" hidden data-q-shot>
+          <img alt="" data-q-img />
+        </figure>
+        <blockquote class="q__quote" hidden data-q-quote></blockquote>
+
+        <div class="q__options" role="group" aria-labelledby="q-ask" data-q-options></div>
+
+        <div class="q__after" hidden data-q-after>
+          <p class="q__verdict"><span class="q__stamp" data-q-stamp></span><span data-q-right></span></p>
+          <p class="q__credit" hidden data-q-credit></p>
+          <p class="q__card">
+            Ответ в карточке
+            <a data-q-card><span class="q__card-code" data-q-card-code></span><span data-q-card-title></span></a>
+          </p>
+          <button class="btn" type="button" data-q-next>Дальше</button>
+        </div>
+      </article>
+
+      <article class="res" hidden data-res>
+        <p class="q__meta">
+          <span class="q__code">{pages.quiz.code}</span>
+          <span>Итог</span>
+        </p>
+        <h2 class="res__score" tabindex="-1" data-res-score></h2>
+        <p class="res__stamp"><span data-res-stamp></span></p>
+        <p class="res__note" data-res-note></p>
+        <ol class="res__list" data-res-list></ol>
+        <button class="btn" type="button" data-res-again>Ещё десять вопросов</button>
+      </article>
+
+      <p class="visually-hidden" aria-live="polite" data-q-live></p>
+    </section>
+  </div>
+
+  <script is:inline type="application/json" id="quiz-data" set:html={JSON.stringify(quiz)} />
+</Base>
+
+<script>
+  import type { Question, Quiz } from '../../lib/quiz';
+
+  const ROUND = 10;
+  /**
+   * Строк песен в раунде от трёх до четырёх. Вопрос о линии песни с двумя вариантами
+   * и вопрос о кино (фильмов всего четыре) — не больше одного, остальных видов — до двух.
+   */
+  const FIRST_STROKI = 3;
+  const LIMITS: Record<string, number> = { stroka: 4, line: 1, film: 1 };
+  const limit = (kind: string) => LIMITS[kind] ?? 2;
+
+  const data: Quiz = JSON.parse(document.getElementById('quiz-data')?.textContent ?? '{"questions":[],"lists":{}}');
+  const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
+
+  const q = {
+    root: $('[data-q]'),
+    count: $('[data-q-count]'),
+    score: $('[data-q-score]'),
+    track: $<HTMLOListElement>('[data-q-track]'),
+    ask: $('[data-q-ask]'),
+    shot: $('[data-q-shot]'),
+    img: $<HTMLImageElement>('[data-q-img]'),
+    quote: $('[data-q-quote]'),
+    options: $('[data-q-options]'),
+    after: $('[data-q-after]'),
+    stamp: $('[data-q-stamp]'),
+    right: $('[data-q-right]'),
+    credit: $('[data-q-credit]'),
+    card: $<HTMLAnchorElement>('[data-q-card]'),
+    cardCode: $('[data-q-card-code]'),
+    cardTitle: $('[data-q-card-title]'),
+    next: $<HTMLButtonElement>('[data-q-next]'),
+    live: $('[data-q-live]'),
+  };
+  const res = {
+    root: $('[data-res]'),
+    score: $('[data-res-score]'),
+    stamp: $('[data-res-stamp]'),
+    note: $('[data-res-note]'),
+    list: $<HTMLOListElement>('[data-res-list]'),
+    again: $<HTMLButtonElement>('[data-res-again]'),
+  };
+
+  const rand = (n: number) => Math.floor(Math.random() * n);
+  function shuffle<T>(list: T[]): T[] {
+    const a = [...list];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = rand(i + 1);
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /** Раунд: сначала строки песен, потом случайные виды вопросов, чтобы частых не было больше редких. Карточки не повторяются. */
+  function makeRound(): Question[] {
+    const pool = shuffle(data.questions);
+    const picked: Question[] = [];
+    const kinds = new Map<string, number>();
+    const cards = new Set<string>();
+    const fits = (x: Question) => (kinds.get(x.kind) ?? 0) < limit(x.kind) && !cards.has(x.card.href);
+    const take = (x: Question) => {
+      picked.push(x);
+      kinds.set(x.kind, (kinds.get(x.kind) ?? 0) + 1);
+      cards.add(x.card.href);
+    };
+
+    for (const x of pool) if (x.kind === 'stroka' && picked.length < FIRST_STROKI && fits(x)) take(x);
+    while (picked.length < ROUND) {
+      const open = [...new Set(pool.filter(fits).map((x) => x.kind))];
+      if (!open.length) break;
+      const kind = open[rand(open.length)];
+      take(pool.find((x) => x.kind === kind && fits(x))!);
+    }
+    return shuffle(picked);
+  }
+
+  /** Ответ и три неверных варианта. Годы — по порядку, остальное вперемешку. */
+  function makeOptions(x: Question): string[] {
+    const list = typeof x.wrong === 'string' ? (data.lists[x.wrong] ?? []) : x.wrong;
+    const skip = new Set([x.answer, ...(x.not ?? [])]);
+    const wrong = shuffle([...new Set(list)].filter((w) => !skip.has(w))).slice(0, 3);
+    const all = [x.answer, ...wrong];
+    return x.ordered ? all.sort((a, b) => Number(a) - Number(b)) : shuffle(all);
+  }
+
+  type Answer = { question: Question; chosen: string; ok: boolean };
+  let round: Question[] = [];
+  let answers: Answer[] = [];
+  let current = 0;
+  let open = false;
+
+  /** Анимацию появления перезапускают, сняв и снова поставив класс. */
+  function replay(el: HTMLElement, cls = 'is-in') {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  function start(focus = false) {
+    round = makeRound();
+    answers = [];
+    current = 0;
+    q.track.replaceChildren(...round.map(() => document.createElement('li')));
+    res.root.hidden = true;
+    q.root.hidden = false;
+    show(focus);
+  }
+
+  function show(focus = true) {
+    const x = round[current];
+    open = true;
+    q.count.textContent = `Вопрос ${current + 1} из ${round.length}`;
+    q.score.textContent = `верно: ${answers.filter((a) => a.ok).length}`;
+    q.track.querySelectorAll('li').forEach((li, i) => li.classList.toggle('is-now', i === current));
+
+    q.ask.textContent = x.ask;
+    q.quote.hidden = !x.quote;
+    q.quote.textContent = x.quote ?? '';
+    q.quote.classList.toggle('q__quote--prose', x.kind === 'place');
+    q.shot.hidden = !x.shot;
+    if (x.shot) {
+      q.img.src = x.shot.src;
+      q.img.alt = x.shot.alt;
+      q.img.style.aspectRatio = String(x.shot.ratio);
+    }
+
+    q.options.replaceChildren(
+      ...makeOptions(x).map((text, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'opt';
+        b.dataset.value = text;
+        const n = document.createElement('span');
+        n.className = 'opt__n';
+        n.textContent = String(i + 1);
+        n.setAttribute('aria-hidden', 'true');
+        const t = document.createElement('span');
+        t.textContent = text;
+        b.append(n, t);
+        b.addEventListener('click', () => choose(text));
+        return b;
+      }),
+    );
+
+    q.after.hidden = true;
+    q.credit.hidden = true;
+    q.live.textContent = '';
+    replay(q.root);
+    if (!focus) return;
+    q.ask.focus({ preventScroll: true });
+    if (q.root.getBoundingClientRect().top < 0) q.root.scrollIntoView({ block: 'start' });
+  }
+
+  function choose(value: string) {
+    if (!open) return;
+    open = false;
+    const x = round[current];
+    const ok = value === x.answer;
+    answers.push({ question: x, chosen: value, ok });
+
+    q.options.querySelectorAll<HTMLButtonElement>('.opt').forEach((b) => {
+      b.disabled = true;
+      b.classList.toggle('is-right', b.dataset.value === x.answer);
+      b.classList.toggle('is-wrong', !ok && b.dataset.value === value);
+    });
+    q.track.children[current].classList.add(ok ? 'is-ok' : 'is-miss');
+    q.score.textContent = `верно: ${answers.filter((a) => a.ok).length}`;
+
+    q.stamp.textContent = ok ? 'верно' : 'неверно';
+    q.stamp.classList.toggle('is-miss', !ok);
+    q.right.textContent = ok ? '' : `Правильный ответ: ${x.answer}`;
+    q.live.textContent = ok ? 'Верно.' : `Неверно. Правильный ответ: ${x.answer}.`;
+
+    if (x.shot) {
+      q.credit.replaceChildren(`${x.shot.caption}. `);
+      const credit = x.shot.url ? Object.assign(document.createElement('a'), { href: x.shot.url, target: '_blank', rel: 'noopener' }) : document.createElement('span');
+      credit.textContent = x.shot.credit;
+      q.credit.append(credit);
+      q.credit.hidden = false;
+    }
+
+    q.card.href = x.card.href;
+    q.cardCode.textContent = x.card.code;
+    q.cardTitle.textContent = x.card.title;
+    q.next.textContent = current + 1 < round.length ? 'Дальше' : 'Итог';
+    q.after.hidden = false;
+    replay(q.stamp);
+    q.next.focus({ preventScroll: true });
+  }
+
+  /** Итог ставится штампом, как на карточках картотеки. */
+  function verdict(ok: number, total: number): [string, string] {
+    if (ok === total) return ['проверено', 'Все ответы сошлись с карточками. Такой карточке ставят штамп «проверено».'];
+    if (ok >= total - 3) return ['требует сверки', 'Почти всё сошлось. Где ошибка — видно ниже, ответ в карточке по ссылке.'];
+    return ['заполняется', 'Карточка ещё заполняется. Ниже разбор: ответ на каждый вопрос — в карточке по ссылке.'];
+  }
+
+  function finish() {
+    const ok = answers.filter((a) => a.ok).length;
+    const [stamp, note] = verdict(ok, answers.length);
+    res.score.textContent = `${ok} из ${answers.length}`;
+    res.stamp.textContent = stamp;
+    res.stamp.classList.toggle('is-miss', ok < answers.length);
+    res.note.textContent = note;
+
+    res.list.replaceChildren(
+      ...answers.map((a) => {
+        const li = document.createElement('li');
+        li.className = a.ok ? 'is-ok' : 'is-miss';
+        const ask = document.createElement('p');
+        ask.className = 'res__ask';
+        ask.textContent = a.question.quote ? `${a.question.ask} «${a.question.quote.replace(/\s*\n\s*/g, ' / ')}»` : a.question.ask;
+        const ans = document.createElement('p');
+        ans.className = 'res__ans';
+        if (!a.ok) ans.append(Object.assign(document.createElement('s'), { textContent: a.chosen }), ' ');
+        ans.append(Object.assign(document.createElement('b'), { textContent: a.question.answer }));
+        const link = document.createElement('a');
+        link.className = 'res__card';
+        link.href = a.question.card.href;
+        link.append(Object.assign(document.createElement('span'), { textContent: a.question.card.code }), a.question.card.title);
+        li.append(ask, ans, link);
+        return li;
+      }),
+    );
+
+    q.root.hidden = true;
+    res.root.hidden = false;
+    replay(res.root);
+    replay(res.stamp);
+    res.score.focus({ preventScroll: true });
+    res.root.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  q.next.addEventListener('click', () => {
+    current++;
+    if (current < round.length) show();
+    else finish();
+  });
+  res.again.addEventListener('click', () => start(true));
+
+  // Ответ с клавиатуры: цифры 1–4.
+  addEventListener('keydown', (e) => {
+    if (!open || e.altKey || e.ctrlKey || e.metaKey) return;
+    const i = Number(e.key) - 1;
+    const b = q.options.querySelectorAll<HTMLButtonElement>('.opt')[i];
+    if (b) b.click();
+  });
+
+  if (data.questions.length) start();
+</script>
+
+<style>
+  .quiz {
+    max-width: 880px;
+  }
+
+  .quiz__nojs {
+    padding: 20px;
+    background: var(--panel);
+    color: var(--text-soft);
+  }
+
+  /* Вопрос — карточка с красной кромкой, как в ящиках */
+  .q,
+  .res {
+    position: relative;
+    background: var(--panel);
+    padding: clamp(22px, 4vw, 44px) clamp(18px, 4vw, 44px);
+  }
+
+  .q::before,
+  .res::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    background: var(--red);
+  }
+
+  .q__meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 0 0 14px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .q__code {
+    color: var(--red);
+    font-weight: 500;
+  }
+
+  .q__score {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Дорожка раунда: кадрики-отметки, верные белые, ошибки красные */
+  .q__track {
+    display: flex;
+    gap: 4px;
+    margin: 0 0 28px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .q__track :global(li) {
+    flex: 1;
+    height: 4px;
+    background: var(--line);
+  }
+
+  .q__track :global(li.is-now) {
+    background: #555;
+  }
+
+  .q__track :global(li.is-ok) {
+    background: var(--text);
+  }
+
+  .q__track :global(li.is-miss) {
+    background: var(--red);
+  }
+
+  .q__ask {
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(2rem, 5vw, 2.9rem);
+    line-height: 0.95;
+    margin-bottom: 24px;
+    text-wrap: balance;
+  }
+
+  .q__ask:focus {
+    outline: none;
+  }
+
+  .q__quote {
+    margin: 0 0 28px;
+    padding-left: 20px;
+    border-left: 3px solid var(--red);
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 3.6vw, 1.9rem);
+    line-height: 1.1;
+    text-transform: uppercase;
+    white-space: pre-line;
+    color: var(--text-soft);
+  }
+
+  /* Рассказ о месте — обычным текстом, не строкой песни */
+  .q__quote--prose {
+    font-family: var(--body);
+    font-weight: 400;
+    font-size: 1.1rem;
+    line-height: 1.55;
+    text-transform: none;
+  }
+
+  .q__shot {
+    margin: 0 0 28px;
+    background: #050505;
+  }
+
+  /* Высота задана заранее, чтобы варианты не прыгали, пока грузится снимок */
+  .q__shot img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: min(420px, 60vh);
+    margin-inline: auto;
+    object-fit: contain;
+  }
+
+  .q__options {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+
+  .q__options :global(.opt) {
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    width: 100%;
+    padding: 13px 4px;
+    font: inherit;
+    font-size: 1.02rem;
+    font-weight: 500;
+    text-align: left;
+    color: var(--text);
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+  }
+
+  .q__options :global(.opt:hover:not(:disabled)) {
+    background: var(--panel-hover);
+    color: var(--red-hover);
+  }
+
+  .q__options :global(.opt:disabled) {
+    cursor: default;
+    color: var(--muted);
+  }
+
+  .q__options :global(.opt__n) {
+    width: 1.5rem;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    color: var(--red);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Верный ответ подчёркнут белым, ошибка зачёркнута красным */
+  .q__options :global(.opt.is-right) {
+    color: var(--text);
+    box-shadow: inset 3px 0 0 var(--text);
+    padding-left: 14px;
+  }
+
+  .q__options :global(.opt.is-wrong) {
+    color: var(--red);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+  }
+
+  .q__after {
+    margin-top: 24px;
+  }
+
+  .q__verdict {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin: 0 0 10px;
+  }
+
+  /* Штамп: рамка с текстом, ставится с размаху */
+  .q__stamp,
+  .res__stamp span {
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.4;
+    padding: 3px 10px;
+    border: 2px solid var(--text);
+    color: var(--text);
+    rotate: -3deg;
+  }
+
+  .q__stamp.is-miss,
+  .res__stamp span.is-miss {
+    color: var(--red);
+    border-color: var(--red);
+  }
+
+  .q__credit {
+    margin: 0 0 10px;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+
+  .q__credit :global(a) {
+    text-decoration-color: #444;
+  }
+
+  .q__card {
+    margin: 0 0 20px;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .q__card a {
+    margin-left: 6px;
+    color: var(--text);
+    text-decoration-color: var(--red);
+    font-weight: 500;
+  }
+
+  .q__card a:hover {
+    color: var(--red-hover);
+  }
+
+  .q__card-code {
+    margin-right: 8px;
+    color: var(--red);
+    font-size: 0.85rem;
+  }
+
+  /* Итог */
+  .res__score {
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(3.4rem, 10vw, 6rem);
+    line-height: 0.85;
+    margin-bottom: 18px;
+  }
+
+  .res__score:focus {
+    outline: none;
+  }
+
+  .res__stamp {
+    margin: 0 0 14px;
+  }
+
+  .res__stamp span {
+    font-size: 1rem;
+  }
+
+  .res__note {
+    max-width: 56ch;
+    margin: 0 0 28px;
+    color: var(--text-soft);
+  }
+
+  .res__list {
+    margin: 0 0 28px;
+    padding: 0;
+    list-style: none;
+    counter-reset: res;
+    border-top: 1px solid var(--line);
+  }
+
+  .res__list :global(li) {
+    counter-increment: res;
+    position: relative;
+    padding: 12px 0 12px 2.2rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .res__list :global(li)::before {
+    content: counter(res);
+    position: absolute;
+    left: 0;
+    top: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .res__list :global(li.is-miss)::before {
+    color: var(--red);
+  }
+
+  .res__list :global(p) {
+    margin: 0;
+  }
+
+  .res__list :global(.res__ask) {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .res__list :global(.res__ans) {
+    font-weight: 500;
+  }
+
+  .res__list :global(s) {
+    color: var(--red);
+    text-decoration-thickness: 2px;
+  }
+
+  .res__list :global(.res__card) {
+    display: inline-flex;
+    gap: 8px;
+    margin-top: 2px;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    text-decoration-color: var(--red);
+  }
+
+  .res__list :global(.res__card:hover) {
+    color: var(--red-hover);
+  }
+
+  .res__list :global(.res__card span) {
+    color: var(--red);
+  }
+
+  /* Новый вопрос достают из ящика, ответ ставят штампом */
+  @media (prefers-reduced-motion: no-preference) {
+    .q:global(.is-in),
+    .res:global(.is-in) {
+      animation: q-pull 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+
+    .q__stamp:global(.is-in),
+    .res__stamp span:global(.is-in) {
+      animation: q-stamp 0.42s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+    }
+
+    .q__options :global(.opt) {
+      transition: background-color 0.15s, color 0.15s;
+    }
+  }
+
+  @keyframes q-pull {
+    from {
+      opacity: 0;
+      translate: 0 36px;
+    }
+  }
+
+  @keyframes q-stamp {
+    from {
+      opacity: 0;
+      scale: 1.9;
+      rotate: -10deg;
+    }
+
+    60% {
+      opacity: 1;
+      scale: 0.94;
+    }
+  }
+</style>
