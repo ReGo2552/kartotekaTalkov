@@ -1,6 +1,7 @@
 ---
 import CardPage from '../../components/CardPage.astro';
 import CardText from '../../components/CardText.astro';
+import Disc from '../../components/Disc.astro';
 import Tag from '../../components/Tag.astro';
 import { cardCode, cardHref, drawers, findSong, getCards, resolveRef } from '../../lib/cards';
 
@@ -39,9 +40,21 @@ const fields = [
   fields={fields}
   see={see}
   sources={d.sources}
-  photo={d.photo}
-  photoShape="square"
 >
+  <Disc
+    slot="photo"
+    class="head__photo"
+    photo={d.photo}
+    format={d.format}
+    title={d.title}
+    artist={d.artist}
+    label={d.label}
+    catno={d.catno}
+    year={d.year}
+    labels={d.labels}
+    code={cardCode('albums', d.num)}
+  />
+
   <Fragment slot="tags">
     <Tag tone={d.posthumous ? 'red' : 'muted'}>{d.posthumous ? 'после гибели' : 'при жизни'}</Tag>
     <Tag>{d.status}</Tag>

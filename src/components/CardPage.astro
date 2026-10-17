@@ -25,6 +25,8 @@ interface Props {
 
 const { title, description, code, drawer, crumb, fields = [], see = [], sources = [], photo, photoShape } = Astro.props;
 const filled = fields.filter((f) => f.value);
+// Вместо снимка можно передать свой блок в слот photo — пластинку в конверте. Ему нужно место пошире.
+const wide = Astro.slots.has('photo');
 ---
 
 <Base title={title} description={description}>
@@ -37,8 +39,8 @@ const filled = fields.filter((f) => f.value);
     <IndexCard code={code} drawer={drawer} title={title}>
       <Fragment slot="tags"><slot name="tags" /></Fragment>
 
-      {(filled.length > 0 || photoShape) && (
-        <div class:list={['head', { 'head--photo': photoShape }]}>
+      {(filled.length > 0 || photoShape || wide) && (
+        <div class:list={['head', { 'head--photo': photoShape || wide, 'head--wide': wide }]}>
           {filled.length > 0 && (
             <dl class="fields">
               {filled.map((f) => (
@@ -49,7 +51,7 @@ const filled = fields.filter((f) => f.value);
               ))}
             </dl>
           )}
-          {photoShape && <Photo photo={photo} shape={photoShape} code={code} class="head__photo" />}
+          {wide ? <slot name="photo" /> : photoShape && <Photo photo={photo} shape={photoShape} code={code} class="head__photo" />}
         </div>
       )}
 
@@ -109,6 +111,14 @@ const filled = fields.filter((f) => f.value);
     grid-template-columns: minmax(0, 1fr) 280px;
     gap: 40px;
     align-items: start;
+  }
+
+  .head--wide {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  }
+
+  .head--wide .fields div {
+    grid-template-columns: 8.5rem 1fr;
   }
 
   .fields {
@@ -189,13 +199,25 @@ const filled = fields.filter((f) => f.value);
     word-break: break-word;
   }
 
+  @media (max-width: 900px) {
+    .head--wide {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .head--wide :global(.head__photo) {
+      order: -1;
+      max-width: 480px;
+    }
+  }
+
   @media (max-width: 700px) {
     .head--photo {
       grid-template-columns: 1fr;
       gap: 24px;
     }
 
-    .head :global(.head__photo) {
+    .head:not(.head--wide) :global(.head__photo) {
       order: -1;
       max-width: 320px;
     }

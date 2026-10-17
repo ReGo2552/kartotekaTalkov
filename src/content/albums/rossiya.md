@@ -5,6 +5,7 @@ year: '1991'
 format: грампластинка (LP)
 label: «Ладъ»
 posthumous: true
+labels: [красная, белая, чёрная]
 status: проверено
 tracks:
   - Россия
